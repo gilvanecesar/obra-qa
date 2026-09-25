@@ -1,0 +1,17 @@
+name: obra-qa
+services:
+  agent:
+    image: obra-qa-agent:local
+    platform: linux/amd64
+    env_file: ./local/plow-credentials
+    environment:
+      OBRA_QA_URL: https://host.docker.internal:4781
+      OBRA_QA_TOKEN_FILE: /run/obra-qa/token
+      OBRA_QA_CA_FILE: /run/obra-qa/ca.crt
+    volumes:
+      - state:/var/lib/plow
+      - ./local/bridge-token:/run/obra-qa/token:ro
+      - ./local/bridge.crt:/run/obra-qa/ca.crt:ro
+    stop_grace_period: 35s
+volumes:
+  state:

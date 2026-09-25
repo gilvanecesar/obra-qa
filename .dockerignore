@@ -1,0 +1,12 @@
+runs/
+node_modules/
+.env
+plow-credentials
+local/
+
+.DS_Store
+__pycache__/
+*.pyc
+.env.*
+*.key
+*.pem
