@@ -135,7 +135,8 @@ Our [deployment guide](docs/DEPLOY.md) includes the architecture blocker, image 
 | PDF attachment and live progress in chat | Pending end-to-end validation |
 | Repository-link analysis and generated tests | Planned |
 | Multiplayer pilot | Pending |
-| Agent Index, usage registration and one-click admission | Pending |
+| Agent Index listing | Registered as a prototype |
+| Usage reporting verification and one-click admission | Pending |
 | Public demo video of at least 60 seconds | Pending |
 
 ## Execution boundaries

@@ -59,7 +59,7 @@ Make the package public in GitHub package settings. Verify an anonymous pull of 
 
 ## 4. Register and verify usage
 
-When the agent is ready for real installations, claim the intended slug (availability is not yet verified):
+When the agent is ready for real installations, update the registered `obra-qa` listing (prototype registration confirmed on 2026-09-25):
 
 ```sh
 plow-agents image set obra-qa --name "Obra QA" \
