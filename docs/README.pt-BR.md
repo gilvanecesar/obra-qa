@@ -32,8 +32,19 @@ O código privado do AUTOMACAO e os dados dos clientes não estão neste reposit
 
 ## O que falta para o hackathon
 
-Validar o grupo com dois participantes, as atualizações ao vivo, o anexo PDF na conversa, o cadastro e uso no Agent Index, o vídeo e uma instalação independente com executor próprio.
+Validar o grupo com dois participantes, as atualizações ao vivo, o anexo PDF na conversa, o envio automático recorrente de uso ao Agent Index, o vídeo e uma instalação independente com executor próprio.
 
-**O deploy de um clique ainda não está ativo.** A imagem e o processo de publicação estão preparados; a organização precisa habilitar o primeiro deploy. Antes disso, temos de resolver como cada nova instalação conecta seu executor de testes.
+**O deploy de um clique ainda não está ativo.** A imagem pública foi publicada e baixada sem credenciais de registro; a organização precisa habilitar o primeiro deploy. Antes disso, temos de resolver como cada nova instalação conecta seu executor de testes.
 
 [README completo](../README.md) · [Instalação local](SETUP.md) · [Preparação para deploy](DEPLOY.md)
+
+## Imagem Docker e teste de instalação
+
+```sh
+docker pull --platform linux/amd64 \
+  ghcr.io/gilvanecesar/obra-qa@sha256:4c138cd04a46be2110e569f45ef09c5b48fb88c57e59bf0579b333ef78fdb363
+```
+
+A imagem publicada usa **linux/amd64**. No Mac com Apple Silicon, informe a plataforma explicitamente; a execução depende da emulação do Docker Desktop. Ela contém o agente de conversa e o cliente de QA, mas exige credenciais Plow e um executor configurado separadamente.
+
+Em 25/09/2026, uma cópia nova do GitHub passou nos seis testes, na demonstração Docker, na preparação do projeto sintético e na instalação do ReportLab 4.4.3 em um ambiente Python novo. O download da imagem foi validado sem credenciais de registro, com possível reaproveitamento de camadas locais. Isso não valida ainda uma instalação completa na nuvem. Um relatório de uso real foi aceito pelo Agent Index; o envio automático recorrente ainda precisa ser verificado.

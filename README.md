@@ -113,9 +113,24 @@ It creates a synthetic cross-tenant defect, executes the failing test, applies a
 
 For phone-based operation, follow [local setup](docs/SETUP.md). For public image packaging and one-click admission, use the [deployment guide](docs/DEPLOY.md).
 
+## Published Docker image
+
+The public conversational runtime was built from commit `296f117`. Download the tested immutable release with:
+
+```sh
+docker pull --platform linux/amd64 \
+  ghcr.io/gilvanecesar/obra-qa@sha256:4c138cd04a46be2110e569f45ef09c5b48fb88c57e59bf0579b333ef78fdb363
+```
+
+This release targets **linux/amd64**. Specify the platform on Apple Silicon; a pull that defaults to ARM64 will fail. Docker Desktop uses emulation to run this image on Apple Silicon.
+
+The image contains the OpenClaw conversational agent and QA client. It still needs Plow credentials and a separately configured QA executor; downloading it does not create a working standalone QA service. Follow [local setup](docs/SETUP.md) for a locally built agent with its own fixture, or [deployment configuration](docs/DEPLOY.md) for the published runtime's required inputs.
+
+**Installation checks on 2026-09-25:** a fresh GitHub clone passed all six tests, the Docker regression/isolation/timeout demo, fixture setup and installation of ReportLab 4.4.3 in a new virtual environment. The published image was pulled with an empty Docker credential configuration. Docker layers could be cached; this was not a fresh-machine or end-to-end cloud installation test.
+
 ## One-click deployment: honest release status
 
-**Image packaging and a manual GHCR publishing workflow are prepared. The install button is not live.**
+**A public GHCR image is published and its anonymous download is verified. The install button is not live.**
 
 The [official publishing process](https://aiworthusing.com/agent-index/publish) requires a public image, an Agent Index listing and an administrator enabling the first one-click deployment. More importantly, a new installation must have its own working executor: a cloud container cannot reach the developer's Mac using `host.docker.internal`.
 
@@ -131,12 +146,13 @@ Our [deployment guide](docs/DEPLOY.md) includes the architecture blocker, image 
 | Per-check execution events | Implemented; available through status |
 | JSON, Markdown and PDF artifacts | Generated locally |
 | PDF download into the agent | Verified |
-| Fresh-install image build/publish workflow | Prepared; publication is manual |
+| Fresh source setup and public image download | Verified locally; publication is manual |
 | PDF attachment and live progress in chat | Pending end-to-end validation |
 | Repository-link analysis and generated tests | Planned |
 | Multiplayer pilot | Pending |
 | Agent Index listing | Registered as a prototype |
-| Usage reporting verification and one-click admission | Pending |
+| Real usage report | Accepted by Agent Index; automatic recurring reporting not yet verified |
+| One-click admission and independent cloud install | Pending |
 | Public demo video of at least 60 seconds | Pending |
 
 ## Execution boundaries

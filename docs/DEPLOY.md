@@ -72,7 +72,7 @@ Configure `AGENT_ID=obra-qa` in the runtime only after confirming the registered
 
 ## 5. Acceptance gate before one-click admission
 
-- [ ] Public immutable image can be pulled anonymously.
+- [x] Public immutable image can be pulled anonymously with `--platform linux/amd64` (2026-09-25; existing Docker host, not a fresh machine).
 - [ ] A second installation boots under a different owner's credentials.
 - [ ] That installation can securely provision its own executor and registered project.
 - [ ] Missing executor configuration produces clear onboarding instructions.
@@ -80,7 +80,8 @@ Configure `AGENT_ID=obra-qa` in the runtime only after confirming the registered
 - [ ] Repository text cannot redirect the workflow into unrelated actions.
 - [ ] Test results, recorded progress and PDF match actual evidence.
 - [ ] PDF attachment is received in the requesting conversation.
-- [ ] Agent Index registration and real usage reporting are verified.
+- [x] Agent Index registration and a manually submitted real usage report are verified (2026-09-25).
+- [ ] Automatic recurring usage reporting is verified.
 - [ ] A video of at least 60 seconds demonstrates the real workflow.
 
 ## 6. Organizer handoff
