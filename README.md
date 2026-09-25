@@ -1,18 +1,105 @@
+<div align="center">
+
 # Obra QA
+### Your team's QA engineer. In the conversation. Backed by evidence.
 
-An evidence-based QA agent built on OpenClaw and Plow for a trusted software team. Ask it to test a registered project; it pins the committed revision, runs configured checks in isolated Docker containers, records progress and produces evidence and an optional PDF.
+[![MIT license](https://img.shields.io/badge/license-MIT-2563eb)](LICENSE)
+[![Built on OpenClaw](https://img.shields.io/badge/built_on-OpenClaw-0f766e)](https://github.com/plow-pbc/plow-openclaw-agent)
+[![Validation](https://github.com/gilvanecesar/obra-qa/actions/workflows/validate.yml/badge.svg)](https://github.com/gilvanecesar/obra-qa/actions/workflows/validate.yml)
 
-**Hackathon prototype, under active development.** Real owner-chat execution has been verified. Automatic test generation from arbitrary repository links, live chat progress notifications, PDF chat delivery and multiplayer verification are still pending. This is not a complete autonomous audit or security certification.
+**A QA teammate for small software teams that ship faster than they can verify.**
 
-## Architecture
+[Try the demo](#try-it-in-three-commands) · [How it works](#from-a-request-to-evidence) · [Deploy](docs/DEPLOY.md) · [Português](docs/README.pt-BR.md)
 
-Owner / team chat → Plow → OpenClaw skill → authenticated local QA bridge → isolated Docker runner → evidence / PDF → agent response.
+</div>
 
-OpenClaw interprets the request and results. The bridge allowlists repositories and checks; the agent cannot supply arbitrary commands, paths or Docker mounts. The runner has no network, host credentials or Docker socket, runs as a non-root user, and applies resource/time limits. The agent itself retains upstream tools: this deployment is for one trusted team, not mutually untrusted tenants.
+---
 
-## Quick start: reproducible synthetic demo
+## The job we want to fill
 
-Requirements: Node.js 22+, Git and Docker. No npm dependencies are required.
+A developer ships a change. The founder asks whether it works. Someone has to translate that question into checks, run them against the right revision and explain what the evidence actually says.
+
+**Obra QA owns that verification loop.** The team talks to an OpenClaw agent through Plow. It runs registered checks in isolated containers and returns traceable results, including a PDF. Every result points to a specific Git revision, command and evidence hash.
+
+Built for the [AI Worth Using × OpenClaw 2.0 hackathon](https://luma.com/zhkhsnpa). The intended startup role is a QA engineer shared by the founder and developers. The group workflow still needs its multiplayer acceptance test.
+
+> **Current release: working local prototype.** Chat-triggered audits and automatic PDF generation are verified. Public one-click installation is **not enabled**. Repository-link onboarding, automatic test creation, live progress messages and PDF delivery in chat are still being developed.
+
+## Ask naturally
+
+For a registered project:
+
+> “QA, test AUTOMACAO. Show me what passed, what failed and what wasn't tested.”
+
+Or in Portuguese:
+
+> “QA, teste o AUTOMACAO e gere o relatório.”
+
+The user does **not** need to copy a commit SHA. The server pins the project's committed `HEAD`; an explicit full SHA is also supported. Uncommitted changes are excluded.
+
+**Planned experience:** send a repository or pull-request link, review a functionality-based test plan and let QA validate each item. That is the next workflow, not a capability claimed by this release.
+
+## From a request to evidence
+
+```mermaid
+flowchart TD
+    U[Founder or developer asks for QA] --> P[Plow conversation]
+    P --> O[OpenClaw + Obra QA skill]
+    O --> B[Authenticated QA bridge]
+    B --> G[Pin Git commit and read committed README]
+    G --> R[Run allowlisted checks in isolated Docker containers]
+    R --> E[Record stage events, exit codes and hashed logs]
+    E --> F[Generate JSON, Markdown and optional PDF]
+    F --> O
+    O --> A[Explain results and untested scope in chat]
+```
+
+| Stage | What actually happens today |
+|---|---|
+| Understand | Read the registered project's committed README as untrusted context. |
+| Prepare | Pin the revision and export tracked files into a disposable workspace. |
+| Test | Reuse checks configured by the operator; record each start and completion. |
+| Explain | Review logs; separate observed behavior from unverified hypotheses. |
+| Report | Save evidence and generate a PDF when ReportLab is configured. |
+
+The event stream is available in job status. **Recording progress does not yet mean sending live notifications to the phone.** The agent can download the PDF; its final attachment delivery still needs end-to-end verification.
+
+## Evidence from a real project
+
+The first private pilot is **AUTOMACAO**, a Python/Selenium workflow connecting RD Station CRM and WhatsApp. Its source and customer data are not distributed here.
+
+Four offline checks executed the committed message-sending method with browser doubles:
+
+| Scenario | Observed result |
+|---|---|
+| Invalid-number dialog | Passed: sending was interrupted. |
+| Missing message composer | Passed: sending was interrupted. |
+| Incorrect destination tab | Assertion failed: the simulated CRM editor received Enter. |
+| Delivery not confirmed | Assertion failed: the method returned success without observing confirmation. |
+
+The last two checks express proposed safety requirements. They demonstrate behavior in simulation, **not incidents involving real customers**. No WhatsApp messages were sent and no CRM records were changed.
+
+The runner currently labels nonzero exits `INCONCLUSIVE`; evidence review identifies whether an assertion or the environment failed. A passing check is not a product-wide approval.
+
+## Why OpenClaw, Plow and a separate runner?
+
+| Component | Responsibility |
+|---|---|
+| **OpenClaw** | Interpret requests, use the QA skill and explain evidence. |
+| **Plow** | Connect the agent to conversations; the upstream channel supports groups. |
+| **Latch** | Optional access to an owner's Mac tools. The current QA path uses its own bridge. |
+| **QA bridge** | Authenticate requests, allowlist projects/checks and serialize execution. |
+| **Docker runner** | Execute a pinned revision with resource limits and no network. |
+
+The runtime image preserves the official Plow boot and usage reporter. It does not include a Docker socket, repository credentials or customer code.
+
+### Multiplayer acceptance scenario
+
+A founder defines the expected behavior in a trusted group. A developer identifies the registered project or revision. QA runs the checks, reports evidence to that group and records unresolved requirements. This scenario is designed but **not yet validated with two participants**. One installation serves one trusted team; it is not a boundary between hostile users.
+
+## Try it in three commands
+
+With Node.js 22+, Git and Docker installed, clone this repository and run:
 
 ```sh
 npm test
@@ -20,22 +107,53 @@ docker build -f runner.Dockerfile -t obra-qa-runner .
 node scripts/demo.mjs
 ```
 
-The demo creates a temporary Git repository with a cross-tenant access defect, runs tests, applies a synthetic fix and reruns them. It also checks read-only root filesystem, absence of inherited credentials/socket, and timeout handling. Evidence is written under `runs/` (excluded from Git).
+No npm packages, Plow account or customer credentials are needed for this demo.
 
-Nonzero exit codes currently produce `INCONCLUSIVE`, because the runner alone cannot distinguish a failing product assertion from an environment error. The agent must review evidence. `PASSED` covers only configured checks.
+It creates a synthetic cross-tenant defect, executes the failing test, applies a correction and reruns the test. It also verifies timeout handling, a read-only root filesystem and absence of inherited agent credentials or the Docker socket. Evidence is saved in `runs/`.
 
-## Run the local Plow agent
+For phone-based operation, follow [local setup](docs/SETUP.md). For public image packaging and one-click admission, use the [deployment guide](docs/DEPLOY.md).
 
-Follow [local setup](docs/SETUP.md) to provision a private bridge, your own Plow credentials and the image. The synthetic demo needs no customer accounts. The optional AUTOMACAO adapter uses browser doubles and does not send messages; its private target repository is not included.
+## One-click deployment: honest release status
 
-Example request: “QA, teste o projeto demo e mostre as evidências.”
+**Image packaging and a manual GHCR publishing workflow are prepared. The install button is not live.**
 
-The client supports `projects`, `start PROJECT [FULL_SHA]`, `status JOB_ID`, and `pdf JOB_ID`. Omitting SHA pins committed HEAD. Status includes timestamped execution events. Repository documentation is marked untrusted and is not considered proof of functionality.
+The [official publishing process](https://aiworthusing.com/agent-index/publish) requires a public image, an Agent Index listing and an administrator enabling the first one-click deployment. More importantly, a new installation must have its own working executor: a cloud container cannot reach the developer's Mac using `host.docker.internal`.
 
-## Validation and limitations
+Our [deployment guide](docs/DEPLOY.md) includes the architecture blocker, image release commands, registration steps, acceptance checklist and the exact handoff fields for the organizer. No decorative “Deploy” button points to an unavailable installation.
 
-Six automated tests cover result semantics, API authentication, request restrictions, serialized jobs, automatic revision selection and exclusion of uncommitted documentation. The Docker demo exercises real execution. PDF generation requires Python with ReportLab. Jobs are held in memory; evidence survives restarts, but job retrieval endpoints do not.
+## What is ready?
 
-Remaining work: deeper functional discovery, base/head comparison workflow, PostgreSQL scenarios, complete install packaging, live progress/attachments, multiplayer pilot, public runtime image, Agent Index registration and demo video. Usage reporting is inherited from the base image and requires a registered `AGENT_ID`; no registration is bundled.
+| Capability | Status |
+|---|---|
+| Public MIT source | Available |
+| Owner chat → OpenClaw → actual tests → reply | Verified locally |
+| Revision pinning and authenticated project allowlist | Implemented and tested |
+| Per-check execution events | Implemented; available through status |
+| JSON, Markdown and PDF artifacts | Generated locally |
+| PDF download into the agent | Verified |
+| Fresh-install image build/publish workflow | Prepared; publication is manual |
+| PDF attachment and live progress in chat | Pending end-to-end validation |
+| Repository-link analysis and generated tests | Planned |
+| Multiplayer pilot | Pending |
+| Agent Index, usage registration and one-click admission | Pending |
+| Public demo video of at least 60 seconds | Pending |
 
-See [integration status](docs/INTEGRATION.md) and [third-party components](THIRD_PARTY.md). Original code is licensed under [MIT](LICENSE).
+## Execution boundaries
+
+Checks run without network access, Linux capabilities, host credentials or the Docker socket. Containers use a read-only root filesystem, a non-root user and limits on CPU, memory, processes, output and execution time. Dependencies must be prepared in the runner image.
+
+The operator controls the Docker daemon and registers commands. The OpenClaw runtime retains its upstream tools; only trusted teammates should share an installation. Repository text and test logs are data, never instructions. Jobs are in memory; artifacts persist but lookup endpoints are lost after a bridge restart.
+
+## Project map
+
+```text
+src/                 QA runner, authenticated bridge and revision inventory
+scripts/             Demo, local setup, agent client and PDF generator
+openclaw/            Agent persona, skill and pinned runtime image
+integrations/        Offline project-specific test adapters
+test/                Behavioral tests
+docs/                Setup, deployment and integration status
+.github/workflows/   Validation and manually triggered image publishing
+```
+
+See [integration details](docs/INTEGRATION.md), [MIT license](LICENSE) and [third-party components](THIRD_PARTY.md).
