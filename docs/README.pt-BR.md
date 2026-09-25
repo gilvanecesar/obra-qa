@@ -25,14 +25,15 @@ Para projetos cadastrados, não é necessário informar SHA. O servidor usa o ú
 - Pedido real pelo telefone, execução via OpenClaw e resposta pelo Plow.
 - Quatro cenários simulados do AUTOMACAO: dois passaram e dois reprovaram asserções.
 - Eventos de início e conclusão por teste.
-- Geração automática do PDF e download pelo agente.
-- Seis testes automatizados e demonstração Docker com defeito sintético, correção e limites de execução.
+- Link público GitHub enviado no Plow, sem cadastro manual nem SHA: 12 arquivos do obra-cockpit verificados.
+- Geração automática do PDF, download pelo agente e recebimento do anexo confirmado pelo proprietário em 25/09/2026.
+- Oito testes automatizados e demonstração Docker com defeito sintético, correção e limites de execução.
 
 O código privado do AUTOMACAO e os dados dos clientes não estão neste repositório. Nenhuma mensagem real foi enviada nos cenários simulados.
 
 ## O que falta para o hackathon
 
-Validar o grupo com dois participantes, as atualizações ao vivo, o anexo PDF na conversa, o envio automático recorrente de uso ao Agent Index, o vídeo e uma instalação independente com executor próprio.
+Validar o grupo com dois participantes, as atualizações ao vivo, o envio automático recorrente de uso ao Agent Index, o vídeo e uma instalação independente com executor próprio.
 
 **O deploy de um clique ainda não está ativo.** A imagem pública foi publicada e baixada sem credenciais de registro; a organização precisa habilitar o primeiro deploy. Antes disso, temos de resolver como cada nova instalação conecta seu executor de testes.
 

@@ -79,7 +79,7 @@ Configure `AGENT_ID=obra-qa` in the runtime only after confirming the registered
 - [ ] Two real participants complete a trusted-group QA request.
 - [ ] Repository text cannot redirect the workflow into unrelated actions.
 - [ ] Test results, recorded progress and PDF match actual evidence.
-- [ ] PDF attachment is received in the requesting conversation.
+- [x] PDF attachment is received in the owner’s Plow conversation (owner confirmation, 2026-09-25; local installation).
 - [x] Agent Index registration and a manually submitted real usage report are verified (2026-09-25).
 - [ ] Automatic recurring usage reporting is verified.
 - [ ] A video of at least 60 seconds demonstrates the real workflow.

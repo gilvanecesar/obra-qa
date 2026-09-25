@@ -23,7 +23,7 @@ A developer ships a change. The founder asks whether it works. Someone has to tr
 
 Built for the [AI Worth Using × OpenClaw 2.0 hackathon](https://luma.com/zhkhsnpa). The intended startup role is a QA engineer shared by the founder and developers. The group workflow still needs its multiplayer acceptance test.
 
-> **Current release: working local prototype.** Chat-triggered audits and automatic PDF generation are verified. Public one-click installation is **not enabled**. Public GitHub link onboarding is available for JavaScript/npm projects. Automatic test creation, live progress messages and PDF delivery in chat are still being developed.
+> **Current release: working local prototype.** Chat-triggered audits and automatic PDF generation are verified. Public one-click installation is **not enabled**. Public GitHub link onboarding is available for JavaScript/npm projects. PDF attachment delivery in the owner’s Plow conversation is confirmed. Automatic test creation and live progress messages are still being developed.
 
 ## Ask naturally
 
@@ -68,7 +68,13 @@ flowchart TD
 | Explain | Review logs; separate observed behavior from unverified hypotheses. |
 | Report | Save evidence and generate a PDF when ReportLab is configured. |
 
-The event stream is available in job status. **Recording progress does not yet mean sending live notifications to the phone.** The agent can download the PDF; its final attachment delivery still needs end-to-end verification.
+The event stream is available in job status. **Recording progress does not yet mean sending live notifications to the phone.** The agent downloads the PDF and attaches it to its reply. The owner confirmed receipt in the Plow conversation on 2026-09-25.
+
+## Verified repository-link pilot
+
+On 2026-09-25, the owner sent `https://github.com/gilvanecesar/obra-cockpit` through Plow and requested a PDF. No manual project registration or commit entry was required. The executor pinned commit `99d7ddaf0e45981e59404bdc4f9f64084a93d777`, checked 12 JavaScript files with no syntax failures, and generated the report. The owner confirmed that the PDF arrived as an attachment in the same conversation.
+
+The overall result was **INCONCLUSIVE** because the repository has no npm test script: syntax passed, but application behavior was not tested. This validates the owner-chat delivery flow, not multiplayer, automatic functional-test generation or a fresh cloud installation. The implementation has eight passing automated tests. See [validation record](docs/VALIDATION.md).
 
 ## Evidence from a real project
 
@@ -153,7 +159,8 @@ Our [deployment guide](docs/DEPLOY.md) includes the architecture blocker, image 
 | JSON, Markdown and PDF artifacts | Generated locally |
 | PDF download into the agent | Verified |
 | Fresh source setup and public image download | Verified locally; publication is manual |
-| PDF attachment and live progress in chat | Pending end-to-end validation |
+| PDF attachment in owner chat | Confirmed received by owner on 2026-09-25 |
+| Live progress notifications in chat | Pending end-to-end validation |
 | Public GitHub link → JavaScript/npm checks | Implemented; obra-cockpit verified through running agent client |
 | Generated functional tests and other stack adapters | Planned |
 | Multiplayer pilot | Pending |
