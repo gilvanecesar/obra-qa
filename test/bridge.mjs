@@ -18,3 +18,20 @@ test('bridge authenticates, rejects arbitrary execution and serializes jobs',asy
  assert.equal((await (await call(`/jobs/${job.id}`)).json()).state,'completed');
  }finally{s.closeAllConnections();await new Promise(r=>s.close(r));}
 });
+test('repository URL onboarding pins revision, reports coverage gaps and cleans up',async()=>{
+ let cleaned=false;
+ const s=createBridge({token,projects:{},prepare:async(url,rev,event)=>{
+  assert.equal(url,'https://github.com/example/demo');assert.equal(rev,undefined);
+  event({stage:'repository',state:'completed'});
+  return {repo:'/fixture',revision:sha,spec,gaps:['No functional tests'],cleanup:()=>{cleaned=true}};
+ },runner:async()=>({report:{verdict:'PASSED',checks:[],limits:[]}})});
+ await new Promise(r=>s.listen(0,'127.0.0.1',r));
+ const url=`http://127.0.0.1:${s.address().port}`;
+ try{
+ const response=await fetch(url+'/jobs',{method:'POST',headers:{authorization:`Bearer ${token}`},body:JSON.stringify({repository:'https://github.com/example/demo'})});
+ assert.equal(response.status,202);const {id}=await response.json();
+ await new Promise(r=>setImmediate(r));
+ const result=await (await fetch(url+'/jobs/'+id,{headers:{authorization:`Bearer ${token}`}})).json();
+ assert.equal(result.state,'completed');assert.equal(result.revision,sha);assert.equal(result.report.verdict,'INCONCLUSIVE');assert.deepEqual(result.coverageGaps,['No functional tests']);assert.ok(cleaned);
+ }finally{s.closeAllConnections();await new Promise(r=>s.close(r));}
+});

@@ -7,10 +7,10 @@ if(base.protocol!=='https:'&&!(base.protocol==='http:'&&['127.0.0.1','localhost'
 const token=readFileSync(process.env.OBRA_QA_TOKEN_FILE,'utf8').trim();
 let path,method='GET',body;
 if(action==='projects')path='/projects';
-else if(action==='start'){path='/jobs';method='POST';body=JSON.stringify({project,revision});}
+else if(action==='start'){path='/jobs';method='POST';body=JSON.stringify(project?.startsWith('https://')?{repository:project,revision}:{project,revision});}
 else if(action==='pdf'&&/^[a-f0-9-]{36}$/.test(project||''))path=`/jobs/${project}/report.pdf`;
 else if(action==='status'&&/^[a-f0-9-]{36}$/.test(project||''))path=`/jobs/${project}`;
-else throw Error('Usage: qa-client.mjs projects | start PROJECT COMMIT_SHA | status JOB_ID');
+else throw Error('Usage: qa-client.mjs projects | start PROJECT_OR_GITHUB_URL [COMMIT_SHA] | status JOB_ID');
 const target=new URL(path,base);
 const request=target.protocol==='https:'?httpsRequest:httpRequest;
 const options={method,headers:{authorization:`Bearer ${token}`,'content-type':'application/json'},...(process.env.OBRA_QA_CA_FILE?{ca:readFileSync(process.env.OBRA_QA_CA_FILE)}:{})};

@@ -23,7 +23,7 @@ A developer ships a change. The founder asks whether it works. Someone has to tr
 
 Built for the [AI Worth Using × OpenClaw 2.0 hackathon](https://luma.com/zhkhsnpa). The intended startup role is a QA engineer shared by the founder and developers. The group workflow still needs its multiplayer acceptance test.
 
-> **Current release: working local prototype.** Chat-triggered audits and automatic PDF generation are verified. Public one-click installation is **not enabled**. Repository-link onboarding, automatic test creation, live progress messages and PDF delivery in chat are still being developed.
+> **Current release: working local prototype.** Chat-triggered audits and automatic PDF generation are verified. Public one-click installation is **not enabled**. Public GitHub link onboarding is available for JavaScript/npm projects. Automatic test creation, live progress messages and PDF delivery in chat are still being developed.
 
 ## Ask naturally
 
@@ -37,7 +37,13 @@ Or in Portuguese:
 
 The user does **not** need to copy a commit SHA. The server pins the project's committed `HEAD`; an explicit full SHA is also supported. Uncommitted changes are excluded.
 
-**Planned experience:** send a repository or pull-request link, review a functionality-based test plan and let QA validate each item. That is the next workflow, not a capability claimed by this release.
+Or send a public repository link:
+
+> “QA, test https://github.com/gilvanecesar/obra-cockpit and generate the report.”
+
+The bridge clones the public repository without account credentials, pins its default branch HEAD and discovers JavaScript syntax checks plus npm `test`, `lint`, `typecheck` and `build` scripts. Dependencies require a committed `package-lock.json`; they are prepared in a separate image with lifecycle scripts disabled. Checks execute offline. No project registration or commit copy/paste is needed.
+
+This first automatic adapter supports JavaScript/npm. Private repositories, pull-request URLs, other package managers and other stacks are not yet supported by link onboarding. Repositories without a test script receive an **INCONCLUSIVE** overall result, even if syntax checks pass. Tests are discovered/reused, not generated. Functionality-based test generation remains planned.
 
 ## From a request to evidence
 
@@ -47,7 +53,7 @@ flowchart TD
     P --> O[OpenClaw + Obra QA skill]
     O --> B[Authenticated QA bridge]
     B --> G[Pin Git commit and read committed README]
-    G --> R[Run allowlisted checks in isolated Docker containers]
+    G --> R[Run configured or detected checks in isolated Docker containers]
     R --> E[Record stage events, exit codes and hashed logs]
     E --> F[Generate JSON, Markdown and optional PDF]
     F --> O
@@ -58,7 +64,7 @@ flowchart TD
 |---|---|
 | Understand | Read the registered project's committed README as untrusted context. |
 | Prepare | Pin the revision and export tracked files into a disposable workspace. |
-| Test | Reuse checks configured by the operator; record each start and completion. |
+| Test | Reuse operator-configured checks or detect supported npm scripts; record each start and completion. |
 | Explain | Review logs; separate observed behavior from unverified hypotheses. |
 | Report | Save evidence and generate a PDF when ReportLab is configured. |
 
@@ -148,7 +154,8 @@ Our [deployment guide](docs/DEPLOY.md) includes the architecture blocker, image 
 | PDF download into the agent | Verified |
 | Fresh source setup and public image download | Verified locally; publication is manual |
 | PDF attachment and live progress in chat | Pending end-to-end validation |
-| Repository-link analysis and generated tests | Planned |
+| Public GitHub link → JavaScript/npm checks | Implemented; obra-cockpit verified through running agent client |
+| Generated functional tests and other stack adapters | Planned |
 | Multiplayer pilot | Pending |
 | Agent Index listing | Registered as a prototype |
 | Real usage report | Accepted by Agent Index; automatic recurring reporting not yet verified |
@@ -174,3 +181,5 @@ docs/                Setup, deployment and integration status
 ```
 
 See [integration details](docs/INTEGRATION.md), [MIT license](LICENSE) and [third-party components](THIRD_PARTY.md).
+
+The immutable image linked above predates repository-link onboarding. For the new client, build the current source using [local setup](docs/SETUP.md); the executor must also run the updated source.

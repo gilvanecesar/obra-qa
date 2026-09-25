@@ -18,7 +18,7 @@ flowchart LR
 
 > QA, teste o AUTOMACAO e mostre o que passou, o que falhou e o que ficou sem testar.
 
-Para projetos cadastrados, não é necessário informar SHA. O servidor usa o último commit local e registra a revisão exata. Os testes ainda são preparados pelo operador; análise completa por link e criação automática de testes estão no plano de desenvolvimento.
+Para projetos cadastrados, não é necessário informar SHA. O servidor usa o último commit local e registra a revisão exata. Também é possível enviar a URL de um repositório público GitHub: o executor fixa o commit, verifica sintaxe JavaScript e detecta scripts npm de teste, lint, tipos e build. Dependências exigem package-lock.json. Sem script de teste, o resultado geral permanece INCONCLUSIVE. Repositórios privados, outras stacks e geração automática de testes funcionais ainda não estão disponíveis nesse fluxo.
 
 ## O que já foi validado
 
@@ -48,3 +48,5 @@ docker pull --platform linux/amd64 \
 A imagem publicada usa **linux/amd64**. No Mac com Apple Silicon, informe a plataforma explicitamente; a execução depende da emulação do Docker Desktop. Ela contém o agente de conversa e o cliente de QA, mas exige credenciais Plow e um executor configurado separadamente.
 
 Em 25/09/2026, uma cópia nova do GitHub passou nos seis testes, na demonstração Docker, na preparação do projeto sintético e na instalação do ReportLab 4.4.3 em um ambiente Python novo. O download da imagem foi validado sem credenciais de registro, com possível reaproveitamento de camadas locais. Isso não valida ainda uma instalação completa na nuvem. Um relatório de uso real foi aceito pelo Agent Index; o envio automático recorrente ainda precisa ser verificado.
+
+Para usar o novo fluxo por link, reconstrua o agente e reinicie o executor com o código atual conforme SETUP.md. A imagem pública imutável acima é anterior a essa atualização.
