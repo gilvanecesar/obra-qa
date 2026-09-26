@@ -4,7 +4,15 @@ import {request as httpRequest} from 'node:http';
 const [action,project,revision,planFile]=process.argv.slice(2);
 const base=new URL(process.env.OBRA_QA_URL||'http://127.0.0.1:4781');
 if(base.protocol!=='https:'&&!(base.protocol==='http:'&&['127.0.0.1','localhost'].includes(base.hostname)))throw Error('Remote bridge requires HTTPS');
-const token=readFileSync(process.env.OBRA_QA_TOKEN_FILE,'utf8').trim();
+let token;
+try{token=process.env.OBRA_QA_TOKEN_FILE?readFileSync(process.env.OBRA_QA_TOKEN_FILE,'utf8').trim():'';}
+catch(error){
+ if(!['ENOENT','EACCES','EISDIR'].includes(error.code))throw error;
+}
+if(!token){
+ console.error('Obra QA setup incomplete: the operator must set OBRA_QA_TOKEN_FILE to a readable, nonempty executor token file and configure OBRA_QA_URL for this installation. Never paste the token in chat.');
+ process.exit(1);
+}
 let path,method='GET',body;
 if(action==='projects')path='/projects';
 else if(action==='start'||action==='inspect'){
