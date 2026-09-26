@@ -1,0 +1,266 @@
+{
+  "schemaVersion": 1,
+  "id": "57815832-b686-4814-a83f-72ac39d0cccc",
+  "revision": "dda78ceb6b575f0caa51868b79932ed77aa7dc15",
+  "image": "sha256:676a98efa519619ebb91b8e3384f4fbba524b3bfe5d7202326e90c4a4d51e349",
+  "verdict": "PASSED",
+  "checks": [
+    {
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 408,
+      "name": "javascript-syntax",
+      "argv": [
+        "node",
+        "-e",
+        "const fs=require('fs'),cp=require('child_process');let n=0,failed=0;function walk(p){for(const e of fs.readdirSync(p,{withFileTypes:true})){if(e.name==='node_modules'||e.isSymbolicLink())continue;const f=p+'/'+e.name;if(e.isDirectory())walk(f);else if(/\\.(mjs|cjs|js)$/.test(f)){n++;const r=cp.spawnSync(process.execPath,['--check',f],{encoding:'utf8'});if(r.status!==0){failed++;console.log(r.stderr)}}}}walk('.');console.log(n+' files checked; '+failed+' syntax failures. Syntax is not functional coverage.');process.exit(failed?1:0);"
+      ],
+      "evidence": "javascript-syntax.log",
+      "sha256": "fc19d87493a64b22e86ceb27b983147735fac9c4c4d28e11d5fd9771b57a625c"
+    },
+    {
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 5323,
+      "name": "test",
+      "argv": [
+        "npm",
+        "run",
+        "test"
+      ],
+      "evidence": "test.log",
+      "sha256": "daed45af26cdd7751269b756729b512553d1284e44b1b6097d2bbff77ec2b8d4"
+    },
+    {
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 209,
+      "name": "generated-audit-verdict-validate",
+      "argv": [
+        "sh",
+        "-c",
+        "if [ -d /deps/node_modules ]; then ln -s /deps/node_modules /work/node_modules; fi; exec node --test \"$1\"",
+        "qa",
+        ".obra-qa-tests/audit-verdict-validate.test.mjs"
+      ],
+      "evidence": "generated-audit-verdict-validate.log",
+      "sha256": "72b09ae17b8fb1411de6c68216ea55380b47012305412ad49d7b20e875dff24c"
+    },
+    {
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 226,
+      "name": "generated-repository-url",
+      "argv": [
+        "sh",
+        "-c",
+        "if [ -d /deps/node_modules ]; then ln -s /deps/node_modules /work/node_modules; fi; exec node --test \"$1\"",
+        "qa",
+        ".obra-qa-tests/repository-url.test.mjs"
+      ],
+      "evidence": "generated-repository-url.log",
+      "sha256": "7dfcaa88121cab918a71ee0841d062ec4981fa1ed261f4a7cfe53772669950f3"
+    },
+    {
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 229,
+      "name": "generated-project-inspect",
+      "argv": [
+        "sh",
+        "-c",
+        "if [ -d /deps/node_modules ]; then ln -s /deps/node_modules /work/node_modules; fi; exec node --test \"$1\"",
+        "qa",
+        ".obra-qa-tests/project-inspect.test.mjs"
+      ],
+      "evidence": "generated-project-inspect.log",
+      "sha256": "a0af4a5692d2fb54dcedad5f27591ddad15bc57e0ea57a91b199f60bc088e3a0"
+    },
+    {
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 286,
+      "name": "generated-bridge-auth-serialize",
+      "argv": [
+        "sh",
+        "-c",
+        "if [ -d /deps/node_modules ]; then ln -s /deps/node_modules /work/node_modules; fi; exec node --test \"$1\"",
+        "qa",
+        ".obra-qa-tests/bridge-auth-serialize.test.mjs"
+      ],
+      "evidence": "generated-bridge-auth-serialize.log",
+      "sha256": "4b05c597a2a0bb5242d5d21fe884ddb19b4adc4c577cb0b6fd2c5d1231997884"
+    }
+  ],
+  "limits": [
+    "Only listed commands are covered.",
+    "Nonzero exits require evidence review; they are not automatically confirmed bugs.",
+    "No network, host credentials or untracked dependencies inherited.",
+    "Generated tests are model-authored hypotheses; passing them is not proof of full functional coverage."
+  ],
+  "coverage": [
+    {
+      "id": "verdict-logic",
+      "behavior": "verdict() returns INCONCLUSIVE when checks array is empty or any check status is not 'passed'; returns PASSED only when all checks have status 'passed'",
+      "basis": "src/audit.mjs — verdict() function: `if(!checks.length || checks.some(c=>c.status!=='passed'))return 'INCONCLUSIVE'; return 'PASSED';`",
+      "checks": [
+        "generated-audit-verdict-validate"
+      ],
+      "status": "checks-passed"
+    },
+    {
+      "id": "validate-image",
+      "behavior": "validate() throws when the image field does not match sha256:<64 hex chars>",
+      "basis": "src/audit.mjs — validate(): `if(!/^sha256:[a-f0-9]{64}$/.test(spec?.image||''))throw Error('Immutable local image ID required');`",
+      "checks": [
+        "generated-audit-verdict-validate"
+      ],
+      "status": "checks-passed"
+    },
+    {
+      "id": "validate-checks",
+      "behavior": "validate() requires 1-10 checks with unique names, valid argv (non-empty string array without null bytes), and integer timeout between 100 and 120000 ms",
+      "basis": "src/audit.mjs — validate(): checks length, name regex, duplicate names, argv validation, timeout range",
+      "checks": [
+        "generated-audit-verdict-validate"
+      ],
+      "status": "checks-passed"
+    },
+    {
+      "id": "repourl-accept",
+      "behavior": "repositoryURL() accepts valid HTTPS GitHub repository URLs and returns the .git URL",
+      "basis": "src/repository.mjs — repositoryURL(): validates protocol https:, hostname github.com, no port/user/pass/search/hash",
+      "checks": [
+        "generated-repository-url"
+      ],
+      "status": "checks-passed"
+    },
+    {
+      "id": "repourl-reject",
+      "behavior": "repositoryURL() rejects HTTP, embedded credentials, non-GitHub hosts, file URLs, branch paths, and query strings",
+      "basis": "src/repository.mjs — repositoryURL(): protocol, hostname, path, and traversal validation",
+      "checks": [
+        "generated-repository-url"
+      ],
+      "status": "checks-passed"
+    },
+    {
+      "id": "resolve-revision",
+      "behavior": "resolveRevision() returns the full 40-char SHA of the HEAD commit",
+      "basis": "src/project.mjs — resolveRevision(): `git(repo,'rev-parse','--verify','HEAD^{commit}')`",
+      "checks": [
+        "generated-project-inspect"
+      ],
+      "status": "checks-passed"
+    },
+    {
+      "id": "inspect-doc",
+      "behavior": "inspectProject() reads committed README content from the given SHA, ignoring uncommitted working-tree changes",
+      "basis": "src/project.mjs — inspectProject(): uses `git show ${sha}:${path}` to read committed content",
+      "checks": [
+        "generated-project-inspect"
+      ],
+      "status": "checks-passed"
+    },
+    {
+      "id": "bridge-auth",
+      "behavior": "Bridge returns 401 Unauthorized when the Authorization header does not match the expected Bearer token",
+      "basis": "src/bridge.mjs — timingSafeEqual comparison of Bearer token",
+      "checks": [
+        "generated-bridge-auth-serialize"
+      ],
+      "status": "checks-passed"
+    },
+    {
+      "id": "bridge-projects",
+      "behavior": "Bridge returns 200 with {projects:[...]} on GET /projects with valid auth",
+      "basis": "src/bridge.mjs — `if(req.method==='GET'&&req.url==='/projects')return send(res,200,{projects:Object.keys(projects)})`",
+      "checks": [
+        "generated-bridge-auth-serialize"
+      ],
+      "status": "checks-passed"
+    },
+    {
+      "id": "bridge-serialize",
+      "behavior": "Bridge returns 409 when a second job is submitted while another audit is already running",
+      "basis": "src/bridge.mjs — `if(busy)return send(res,409,{error:'An audit is already running'})`",
+      "checks": [
+        "generated-bridge-auth-serialize"
+      ],
+      "status": "checks-passed"
+    },
+    {
+      "id": "bridge-reject-arbitrary",
+      "behavior": "Bridge returns 400 for invalid project names (path traversal), invalid revision format, or unknown keys in the request body",
+      "basis": "src/bridge.mjs — body validation: checks for allowed keys, project existence, revision format ^[a-f0-9]{40,64}$",
+      "checks": [
+        "generated-bridge-auth-serialize"
+      ],
+      "status": "checks-passed"
+    },
+    {
+      "id": "bridge-cors",
+      "behavior": "Bridge returns 403 when the Origin header is present (browser cross-origin clients not supported)",
+      "basis": "src/bridge.mjs — `if(req.headers.origin)return send(res,403,{error:'Browser origins are not supported'})`",
+      "checks": [
+        "generated-bridge-auth-serialize"
+      ],
+      "status": "checks-passed"
+    }
+  ],
+  "generatedTests": [
+    {
+      "name": "audit-verdict-validate",
+      "requirements": [
+        "verdict-logic",
+        "validate-image",
+        "validate-checks"
+      ],
+      "source": "generated-tests/audit-verdict-validate.test.mjs",
+      "sha256": "0cf78464f35f5f26829cab41b1fee9bfa92f56a65c1df289d51feaf42bc522d6"
+    },
+    {
+      "name": "repository-url",
+      "requirements": [
+        "repourl-accept",
+        "repourl-reject"
+      ],
+      "source": "generated-tests/repository-url.test.mjs",
+      "sha256": "826ba623def78291290a86507e6801fc9af1e9197f2bfcb2b26071c5d85457f6"
+    },
+    {
+      "name": "project-inspect",
+      "requirements": [
+        "resolve-revision",
+        "inspect-doc"
+      ],
+      "source": "generated-tests/project-inspect.test.mjs",
+      "sha256": "45f735212277244396a8dcc2bddabe9fbc54753a921225e7051dcd12b58a186a"
+    },
+    {
+      "name": "bridge-auth-serialize",
+      "requirements": [
+        "bridge-auth",
+        "bridge-projects",
+        "bridge-serialize",
+        "bridge-reject-arbitrary",
+        "bridge-cors"
+      ],
+      "source": "generated-tests/bridge-auth-serialize.test.mjs",
+      "sha256": "72c6d6ec907954ff0e5beb59d70e1deb05069f8ea314092f056c81a969211e58"
+    }
+  ],
+  "analysis": {
+    "revision": "dda78ceb6b575f0caa51868b79932ed77aa7dc15",
+    "trackedFiles": 34,
+    "documentation": [
+      {
+        "path": "README.md",
+        "text": "<div align=\"center\">\n\n# Obra QA\n### Your team's QA engineer. In the conversation. Backed by evidence.\n\n[![MIT license](https://img.shields.io/badge/license-MIT-2563eb)](LICENSE)\n[![Built on OpenClaw](https://img.shields.io/badge/built_on-OpenClaw-0f766e)](https://github.com/plow-pbc/plow-openclaw-agent)\n[![Validation](https://github.com/gilvanecesar/obra-qa/actions/workflows/validate.yml/badge.svg)](https://github.com/gilvanecesar/obra-qa/actions/workflows/validate.yml)\n\n**A QA teammate for small software teams that ship faster than they can verify.**\n\n[Try the demo](#try-it-in-three-commands) · [How it works](#from-a-request-to-evidence) · [Deploy](docs/DEPLOY.md) · [Português](docs/README.pt-BR.md)\n\n</div>\n\n---\n\n## The job we want to fill\n\nA developer ships a change. The founder asks whether it works. Someone has to translate that question into checks, run them against the right revision and explain what the evidence actually says.\n\n**Obra QA owns that verification loop.** The team talks to an OpenClaw agent through Plow. It runs registered checks in isolated containers and returns traceable results, including a PDF. Every result points to a specific Git revision, command and evidence hash.\n\nBuilt for the [AI Worth Using × OpenClaw 2.0 hackathon](https://luma.com/zhkhsnpa). The intended startup role is a QA engineer shared by the founder and developers. The group workflow still needs its multiplayer acceptance test.\n\n> **Current release: working local prototype.** Chat-triggered audits and automatic PDF generation are verified. Public one-click installation is **not enabled**. Public GitHub link onboarding is available for JavaScript/npm projects. PDF attachment delivery in the owner’s Plow conversation is confirmed. Automatic test creation and live progress messages are still being developed.\n\n## Ask naturally\n\nFor a registered project:\n\n> “QA, test AUTOMACAO. Show me what passed, what failed and what wasn't tested.”\n\nOr in Portuguese:\n\n> “QA, teste o AUTOMACAO e gere o relatório.”\n\nThe user does **not** need to copy a commit SHA. The server pins the project's committed `HEAD`; an explicit full SHA is also supported. Uncommitted changes are excluded.\n\nOr send a public repository link:\n\n> “QA, test https://github.com/gilvanecesar/obra-cockpit and generate the report.”\n\nThe bridge clones the public repository without account credentials, pins its default branch HEAD and discovers JavaScript syntax checks plus npm `test`, `lint`, `typecheck` and `build` scripts. Dependencies require a committed `package-lock.json`; they are prepared in a separate image with lifecycle scripts disabled. Checks execute offline. No project registration or commit copy/paste is needed.\n\nThis first automatic adapter supports JavaScript/npm. Private repositories, pull-request URLs, other package managers and other stacks are not yet supported by link onboarding. Repositories without a test script receive an **INCONCLUSIVE** overall result, even if syntax checks pass. Tests are discovered/reused, not generated. Functionality-based test generation remains planned.\n\n## From a request to evidence\n\n```mermaid\nflowchart TD\n    U[Founder or developer asks for QA] --> P[Plow conversation]\n    P --> O[OpenClaw + Obra QA skill]\n    O --> B[Authenticated QA bridge]\n    B --> G[Pin Git commit and read committed README]\n    G --> R[Run configured or detected checks in isolated Docker containers]\n    R --> E[Record stage events, exit codes and hashed logs]\n    E --> F[Generate JSON, Markdown and optional PDF]\n    F --> O\n    O --> A[Explain results and untested scope in chat]\n```\n\n| Stage | What actually happens today |\n|---|---|\n| Understand | Read the registered project's committed README as untrusted context. |\n| Prepare | Pin the revision and export tracked files into a disposable workspace. |\n| Test | Reuse operator-configured checks or detect supported npm scripts; record each start and completion. |\n| Explain | Review logs; separate observed behavior from unverified hypotheses. |\n| Report | Save evidence and generate a PDF when ReportLab is configured. |\n\nThe event stream is available in job status. **Recording progress does not yet mean sending live notifications to the phone.** The agent downloads the PDF and attaches it to its reply. The owner confirmed receipt in the Plow conversation on 2026-09-25.\n\n## Verified repository-link pilot\n\nOn 2026-09-25, the owner sent `https://github.com/gilvanecesar/obra-cockpit` through Plow and requested a PDF. No manual project registration or commit entry was required. The executor pinned commit `99d7ddaf0e45981e59404bdc4f9f64084a93d777`, checked 12 JavaScript files with no syntax failures, and generated the report. The owner confirmed that the PDF arrived as an attachment in the same conversation.\n\nThe overall result was **INCONCLUSIVE** because the repository has no npm test script: syntax passed, but application behavior was not tested. This validates the owner-chat delivery flow, not multiplayer, automatic functional-test generation or a fresh cloud installation. The implementation has eight passing automated tests. See [validation record](docs/VALIDATION.md).\n\n## Evidence from a real project\n\nThe first private pilot is **AUTOMACAO**, a Python/Selenium workflow connecting RD Station CRM and WhatsApp. Its source and customer data are not distributed here.\n\nFour offline checks executed the committed message-sending method with browser doubles:\n\n| Scenario | Observed result |\n|---|---|\n| Invalid-number dialog | Passed: sending was interrupted. |\n| Missing message composer | Passed: sending was interrupted. |\n| Incorrect destination tab | Assertion failed: the simulated CRM editor received Enter. |\n| Delivery not confirmed | Assertion failed: the method returned success without observing confirmation. |\n\nThe last two checks express proposed safety requirements. They demonstrate behavior in simulation, **not incidents involving real customers**. No WhatsApp messages were sent and no CRM records were changed.\n\nThe runner currently labels nonzero exits `INCONCLUSIVE`; evidence review identifies whether an assertion or the environment failed. A passing check is not a product-wide approval.\n\n## Why OpenClaw, Plow and a separate runner?\n\n| Component | Responsibility |\n|---|---|\n| **OpenClaw** | Interpret requests, use the QA skill and explain evidence. |\n| **Plow** | Connect the agent to conversations; the upstream channel supports groups. |\n| **Latch** | Optional access to an owner's Mac tools. The current QA path uses its own bridge. |\n| **QA bridge** | Authenticate requests, allowlist projects/checks and serialize execution. |\n| **Docker runner** | Execute a pinned revision with resource limits and no network. |\n\nThe runtime image preserves the official Plow boot and usage reporter. It does not include a Docker socket, repository credentials or customer code.\n\n### Multiplayer acceptance scenario\n\nA founder defines the expected behavior in a trusted group. A developer identifies the registered project or revision. QA runs the checks, reports evidence to that group and records unresolved requirements. This scenario is designed but **not yet validated with two participants**. One installation serves one trusted team; it is not a boundary between hostile users.\n\n## Try it in three commands\n\nWith Node.js 22+, Git and Docker installed, clone this repository and run:\n\n```sh\nnpm test\ndocker build -f runner.Dockerfile -t obra-qa-runner .\nnode scripts/demo.mjs\n```\n\nNo npm packages, Plow account or customer credentials are needed for this demo.\n\nIt creates a synthetic cross-tenant defect, executes the failing test, applies a correction and reruns the test. It also verifies timeout handling, a read-only root filesystem and absence of inherited agent credentials or the Docker socket. Evidence is saved in `runs/`.\n\nFor phone-based operation, follow [local setup](docs/SETUP.md). For public image packaging and one-click admission, use the [deployment guide](docs/DEPLOY.md).\n\n## Published Docker image\n\nThe public conversational runtime was built from commit `296f117`. Download the tested immutable release with:\n\n```sh\ndocker pull --platform linux/amd64 \\\n  ghcr.io/gilvanecesar/obra-qa@sha256:4c138cd04a46be2110e569f45ef09c5b48fb88c57e59bf0579b333ef78fdb363\n```\n\nThis release targets **linux/amd64**. Specify the platform on Apple Silicon; a pull that defaults to ARM64 will fail. Docker Desktop uses emulation to run this image on Apple Silicon.\n\nThe image contains the OpenClaw conversational agent and QA client. It still needs Plow credentials and a separately configured QA executor; downloading it does not create a working standalone QA service. Follow [local setup](docs/SETUP.md) for a locally built agent with its own fixture, or [deployment configuration](docs/DEPLOY.md) for the published runtime's required inputs.\n\n**Installation checks on 2026-09-25:** a fresh GitHub clone passed all six tests, the Docker regression/isolation/timeout demo, fixture setup and installation of ReportLab 4.4.3 in a new virtual environment. The published image was pulled with an empty Docker credential configuration. Docker layers could be cached; this was not a fresh-machine or end-to-end cloud installation test.\n\n## One-click deployment: honest release status\n\n**A public GHCR image is published and its anonymous download is verified. The install button is not live.**\n\nThe [official publishing process](https://aiworthusing.com/agent-index/publish) requires a public image, an Agent Index listing and an administrator enabling the first one-click deployment. More importantly, a new installation must have its own working executor: a cloud container cannot reach the developer's Mac using `host.docker.internal`.\n\nOur [deployment guide](docs/DEPLOY.md) includes the architecture blocker, image release commands, registration steps, acceptance checklist and the exact handoff fields for the organizer. No decorative “Deploy” button points to an unavailable installation.\n\n## What is ready?\n\n| Capability | Status |\n|---|---|\n| Public MIT source | Available |\n| Owner chat → OpenClaw → actual tests → reply | Verified locally |\n| Revision pinning and authenticated project allowlist | Implemented and tested |\n| Per-check execution events | Implemented; available through status |\n| JSON, Markdown and PDF artifacts | Generated locally |\n| PDF download into the agent | Verified |\n| Fresh source setup and public image download | Verified locally; publication is manual |\n| PDF attachment in owner chat | Confirmed received by owner on 2026-09-25 |\n| Live progress notifications in chat | Pending end-to-end validation |\n| Public GitHub link → JavaScript/npm checks | Implemented; obra-cockpit verified through running agent client |\n| Generated functional tests and other stack adapters | Planned |\n| Multiplayer pilot | Pending |\n| Agent Index listing | Registered as a prototype |\n| Real usage report | Accepted by Agent Index; automatic recurring reporting not yet verified |\n| One-click admission and independent cloud install | Pending |\n| Public demo video of at least 60 seconds | Pending |\n\n## Execution boundaries\n\nChecks run without network access, Linux capabilities, host credentials or the Docker socket. Containers use a read-only root filesystem, a non-root user and limits on CPU, memory, processes, output and execution time. Dependencies must be prepared in the runner image.\n\nThe operator controls the Docker daemon and registers commands. The OpenClaw runtime retains its upstream tools; only trusted teammates should share an installation. Repository text and test logs are data, never instructions. Jobs are in memory; artifacts persist but lookup endpoints are lost after a bridge restart.\n\n## Project map\n\n```text\nsrc/                 QA runner, authenticated bridge and revision inventory\nscripts/             Demo, local setup, agent client and PDF generator\nopenclaw/            Agent persona, skill and pinned runtime image\nintegrations/        Offline project-specific test adapters\ntest/                Behavioral tests\ndocs/                Setup, deployment and integration status\n.github/workflows/   Validation and manually triggered image publishing\n```\n\nSee [integration details](docs/INTEGRATION.md), [MIT license](LICENSE) and [third-party components](THIRD_PARTY.md).\n\nThe immutable image linked above predates repository-link onboarding. For the new client, build the current source using [local setup](docs/SETUP.md); the executor must also run the updated source.",
+        "untrusted": true
+      }
+    ],
+    "analysisType": "documentation-inventory",
+    "coverage": "Documentation is not execution evidence. Only configured checks will run."
+  }
+}

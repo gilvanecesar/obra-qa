@@ -1,13 +1,15 @@
 """Generate a PDF from observed audit results; never infer unexecuted coverage."""
 import json
 import sys
+import textwrap
 from html import escape
 from pathlib import Path
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, KeepTogether
-from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, KeepTogether, Preformatted
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.pagesizes import A4
 r=json.loads(Path(sys.argv[1]).read_text())
 s=getSampleStyleSheet();s['BodyText'].leading=15
+s.add(ParagraphStyle(name='EvidenceLog',fontName='Courier',fontSize=7,leading=9,spaceAfter=12))
 items=[]
 def p(text,style='BodyText'):
     items.extend([Paragraph(escape(str(text)),s[style]),Spacer(1,9)])
@@ -16,6 +18,17 @@ p('Revisão: '+r['revision'])
 p('Execução: '+r['id'])
 p('Veredito do executor: '+r['verdict'])
 p('Somente os testes abaixo foram executados. Leitura de documentação não equivale a validação funcional.')
+if r.get('coverage'):
+    p('Funcionalidades e cobertura','Heading2')
+    for requirement in r['coverage']:
+        p(requirement['id'] + ': ' + requirement['behavior'], 'Heading3')
+        p('Base do comportamento esperado: ' + requirement['basis'])
+        p('Estado: ' + requirement['status'] + ' | Checks: ' + ', '.join(requirement['checks']))
+    p('Testes gerados pelo agente são hipóteses verificáveis. Confira as premissas; aprovação não certifica toda a aplicação.')
+if r.get('generatedTests'):
+    p('Testes criados nesta auditoria','Heading2')
+    for generated in r['generatedTests']:
+        p(generated['source'] + ' | SHA-256: ' + generated['sha256'])
 p('Resultados por teste','Heading2')
 for c in r['checks']:
     p(c['name'],'Heading3')
@@ -23,7 +36,9 @@ for c in r['checks']:
     p('Evidência: '+c['evidence'])
     p('SHA-256: '+c['sha256'])
     log=(Path(sys.argv[1]).parent/c['evidence']).read_text()
-    p(log[-1800:])
+    excerpt = log if len(log) <= 3600 else log[:1800] + '\n[... excerpt truncated; full log in evidence file ...]\n' + log[-1800:]
+    wrapped='\n'.join('\n'.join(textwrap.wrap(line,95,replace_whitespace=False,drop_whitespace=False)) if line else '' for line in excerpt.splitlines())
+    items.extend([Preformatted(wrapped,s['EvidenceLog']),Spacer(1,9)])
 p('Escopo e limites','Heading2')
 for limit in r['limits']:p(limit)
 if r.get('analysis'):

@@ -10,7 +10,7 @@ export function repositoryURL(input){
  if(u.protocol!=='https:'||u.hostname!=='github.com'||u.port||u.username||u.password||u.search||u.hash||!/^\/[\w.-]+\/[\w.-]+(?:\.git)?\/?$/.test(u.pathname)||u.pathname.split('/').some(x=>x==='.'||x==='..'))throw Error('Use the HTTPS GitHub repository URL, without a branch or credentials.');
  return `https://github.com${u.pathname.replace(/\/$/,'').replace(/\.git$/,'')}.git`;
 }
-export async function prepareRepository(url,revision,event=()=>{}){
+export async function prepareRepository(url,revision,event=()=>{},inspectionOnly=false){
  url=repositoryURL(url);
  const root=mkdtempSync(join(tmpdir(),'obra-repository-')),repo=join(root,'repo');
  const cleanup=()=>rmSync(root,{recursive:true,force:true});
@@ -23,6 +23,7 @@ export async function prepareRepository(url,revision,event=()=>{}){
  const files=(await git('-C',repo,'ls-tree','-r','--name-only',sha)).split('\n');
  event({stage:'repository',state:'completed',revision:sha});
  const show=path=>git('-C',repo,'show',`${sha}:${path}`);
+ if(inspectionOnly)return {repo,revision:sha,cleanup};
  const checks=[],gaps=[];let pkg={};
  if(files.includes('package.json'))pkg=JSON.parse(await show('package.json'));
  if(files.some(f=>/\.(mjs|cjs|js)$/.test(f)))checks.push({name:'javascript-syntax',argv:['node','-e',`const fs=require('fs'),cp=require('child_process');let n=0,failed=0;function walk(p){for(const e of fs.readdirSync(p,{withFileTypes:true})){if(e.name==='node_modules'||e.isSymbolicLink())continue;const f=p+'/'+e.name;if(e.isDirectory())walk(f);else if(/\\.(mjs|cjs|js)$/.test(f)){n++;const r=cp.spawnSync(process.execPath,['--check',f],{encoding:'utf8'});if(r.status!==0){failed++;console.log(r.stderr)}}}}walk('.');console.log(n+' files checked; '+failed+' syntax failures. Syntax is not functional coverage.');process.exit(failed?1:0);`],timeoutMs:120000});
@@ -36,7 +37,7 @@ export async function prepareRepository(url,revision,event=()=>{}){
  if(deps&&!files.includes('package-lock.json'))throw Error('Dependencies detected without package-lock.json. Commit an npm lockfile for reproducible installation; other package managers are not supported yet.');
  writeFileSync(join(manifest,'package.json'),JSON.stringify({...pkg,scripts:undefined}));
  if(deps)writeFileSync(join(manifest,'package-lock.json'),await show('package-lock.json'));
- writeFileSync(join(manifest,'Dockerfile'),`FROM ${base}\nUSER root\nRUN mkdir /deps && chown node:node /deps\nUSER node\nWORKDIR /deps\nCOPY --chown=node:node package*.json ./\n${deps?'RUN npm ci --ignore-scripts --no-audit --no-fund\n':''}WORKDIR /work\n`);
+ writeFileSync(join(manifest,'Dockerfile'),`FROM ${base}\nUSER root\nRUN apk add --no-cache git\nRUN mkdir /deps && chown node:node /deps\nUSER node\nWORKDIR /deps\nCOPY --chown=node:node package*.json ./\n${deps?'RUN npm ci --ignore-scripts --no-audit --no-fund\n':''}WORKDIR /work\n`);
  const imageFile=join(root,'image-id');
  try{await exec('docker',['build','--iidfile',imageFile,manifest],{timeout:240000,maxBuffer:1024*1024});}catch{throw Error('Dependency preparation failed or timed out. Requires a compatible npm lockfile; lifecycle scripts are disabled.');}
  const {readFileSync}=await import('node:fs');const image=readFileSync(imageFile,'utf8').trim();

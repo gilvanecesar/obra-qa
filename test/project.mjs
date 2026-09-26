@@ -24,3 +24,18 @@ test('omitted revision pins HEAD and inventory ignores uncommitted documentation
  assert.equal(received,sha);assert.equal(status.events[0].stage,'check');assert.equal(status.pdf.state,'unavailable');
  }finally{if(server){server.closeAllConnections();await new Promise(r=>server.close(r));}rmSync(dir,{recursive:true,force:true});}
 });
+
+test('source inspection reads only bounded committed source, not untracked files or symlinks',async()=>{
+ const {inspectSource}=await import('../src/project.mjs');
+ const {symlinkSync}=await import('node:fs');
+ const dir=mkdtempSync(join(tmpdir(),'qa-inspect-'));
+ const git=(...a)=>execFileSync('git',['-C',dir,...a],{stdio:'pipe'});
+ try{
+ git('init');git('config','user.name','QA');git('config','user.email','qa@example.invalid');
+ writeFileSync(join(dir,'README.md'),'Feature contract');writeFileSync(join(dir,'app.mjs'),'export const ready=true;');
+ writeFileSync(join(dir,'token.mjs'),'DO NOT INCLUDE');symlinkSync('/etc/passwd',join(dir,'link.js'));
+ git('add','.');git('commit','-m','fixture');writeFileSync(join(dir,'untracked.js'),'PRIVATE');
+ const inspected=inspectSource(dir,resolveRevision(dir));
+ assert.deepEqual(inspected.sources.map(s=>s.path),['app.mjs']);assert.equal(inspected.sources[0].untrusted,true);
+ }finally{rmSync(dir,{recursive:true,force:true});}
+});

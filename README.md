@@ -23,7 +23,7 @@ A developer ships a change. The founder asks whether it works. Someone has to tr
 
 Built for the [AI Worth Using × OpenClaw 2.0 hackathon](https://luma.com/zhkhsnpa). The intended startup role is a QA engineer shared by the founder and developers. The group workflow still needs its multiplayer acceptance test.
 
-> **Current release: working local prototype.** Chat-triggered audits and automatic PDF generation are verified. Public one-click installation is **not enabled**. Public GitHub link onboarding is available for JavaScript/npm projects. PDF attachment delivery in the owner’s Plow conversation is confirmed. Automatic test creation and live progress messages are still being developed.
+> **Current release: working local prototype.** Chat-triggered audits and automatic PDF generation are verified. Public one-click installation is **not enabled**. Public GitHub link onboarding is available for JavaScript/npm projects. PDF attachment delivery in the owner’s Plow conversation is confirmed. The deep-analysis flow lets OpenClaw inspect bounded committed source and author mapped Node tests for isolated execution. Live progress delivery depends on the chat channel and remains unvalidated.
 
 ## Ask naturally
 
@@ -162,12 +162,13 @@ Our [deployment guide](docs/DEPLOY.md) includes the architecture blocker, image 
 | PDF attachment in owner chat | Confirmed received by owner on 2026-09-25 |
 | Live progress notifications in chat | Pending end-to-end validation |
 | Public GitHub link → JavaScript/npm checks | Implemented; obra-cockpit verified through running agent client |
-| Generated functional tests and other stack adapters | Planned |
+| Source inspection → model-authored Node tests → requirement coverage | Verified in an internal OpenClaw run; [evidence](examples/deep-analysis/README.md) |
+| Other stack adapters | Pending |
 | Multiplayer pilot | Pending |
 | Agent Index listing | Registered as a prototype |
 | Real usage report | Accepted by Agent Index; automatic recurring reporting not yet verified |
 | One-click admission and independent cloud install | Pending |
-| Public demo video of at least 60 seconds | Pending |
+| Public demo video of at least 60 seconds | [89-second walkthrough published](https://youtu.be/BV4GKwVrF2Y) |
 
 ## Execution boundaries
 
@@ -190,3 +191,11 @@ docs/                Setup, deployment and integration status
 See [integration details](docs/INTEGRATION.md), [MIT license](LICENSE) and [third-party components](THIRD_PARTY.md).
 
 The immutable image linked above predates repository-link onboarding. For the new client, build the current source using [local setup](docs/SETUP.md); the executor must also run the updated source.
+
+## Deep functional analysis
+
+The default agent skill first calls `inspect` to read bounded committed documentation and JavaScript/TypeScript source. It proposes expected behaviors with source references and writes up to four Node test files mapped to up to twelve requirements. The bridge rejects mismatched revisions and invalid file names; test code runs only in offline Docker containers, never in the conversational runtime or on the owner's host.
+
+The report distinguishes `checks-passed`, `needs-review`, and `not-tested` for each requirement. Unmapped requirements keep the overall verdict INCONCLUSIVE. Test source and its SHA-256 are preserved alongside logs. Generated assertions remain hypotheses: review their basis before declaring a product defect. This is not exhaustive coverage, browser automation or support for every stack.
+
+Operator acceptance check: `node scripts/deep-demo.mjs`. It uses an explicitly synthetic module to prove that generated tests fail before a correction, pass after it, and do not hide an untested requirement. The ordinary `npm test` suite covers inspection, plan validation and API integration. See [the protocol](docs/DEEP-ANALYSIS.md).

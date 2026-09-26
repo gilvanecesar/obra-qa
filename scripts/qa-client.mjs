@@ -1,13 +1,17 @@
 import {readFileSync,writeFileSync} from 'node:fs';
 import {request as httpsRequest} from 'node:https';
 import {request as httpRequest} from 'node:http';
-const [action,project,revision]=process.argv.slice(2);
+const [action,project,revision,planFile]=process.argv.slice(2);
 const base=new URL(process.env.OBRA_QA_URL||'http://127.0.0.1:4781');
 if(base.protocol!=='https:'&&!(base.protocol==='http:'&&['127.0.0.1','localhost'].includes(base.hostname)))throw Error('Remote bridge requires HTTPS');
 const token=readFileSync(process.env.OBRA_QA_TOKEN_FILE,'utf8').trim();
 let path,method='GET',body;
 if(action==='projects')path='/projects';
-else if(action==='start'){path='/jobs';method='POST';body=JSON.stringify(project?.startsWith('https://')?{repository:project,revision}:{project,revision});}
+else if(action==='start'||action==='inspect'){
+ path=action==='inspect'?'/inspect':'/jobs';method='POST';
+ const plan=planFile?JSON.parse(readFileSync(planFile,'utf8')):undefined;
+ body=JSON.stringify(project?.startsWith('https://')?{repository:project,revision,plan}:{project,revision,plan});
+}
 else if(action==='pdf'&&/^[a-f0-9-]{36}$/.test(project||''))path=`/jobs/${project}/report.pdf`;
 else if(action==='status'&&/^[a-f0-9-]{36}$/.test(project||''))path=`/jobs/${project}`;
 else throw Error('Usage: qa-client.mjs projects | start PROJECT_OR_GITHUB_URL [COMMIT_SHA] | status JOB_ID');
@@ -26,6 +30,6 @@ await new Promise((resolve,reject)=>{
   res.on('error',reject);
   res.on('end',()=>{console.log(output);if(res.statusCode<200||res.statusCode>=300)process.exitCode=1;resolve();});
  });
- req.setTimeout(10000,()=>req.destroy(Error('Bridge timeout')));req.on('error',reject);
+ req.setTimeout(action==='inspect'?200000:10000,()=>req.destroy(Error('Bridge timeout')));req.on('error',reject);
  if(body)req.write(body);req.end();
 });
