@@ -16,3 +16,7 @@ Not validated: multiplayer, live per-stage chat notifications, generated functio
 ## Deep-analysis update
 
 The updated local agent autonomously inspected the public QA repository, selected 12 source-grounded requirements, created four test files, executed them via the isolated bridge, and downloaded its PDF. Initial environment and test-authoring errors were identified honestly. After assisted environment/assertion remediation, six checks passed on the same target revision. The initial run is retained; see [the acceptance record](../examples/deep-analysis/README.md). This supersedes the earlier "generated functional tests not validated" limitation for bounded JavaScript/Node contracts only; multiplayer and independent installation remain unvalidated.
+
+## Separate-container installation update
+
+The published client was tested against a fresh local executor with independent credentials. Twelve automated tests passed; fixture regression, URL onboarding, additional mapped tests and four PDF downloads were verified. This does not validate fresh Plow onboarding, messaging, multiplayer or standalone cloud deployment. See [the full installation record](INSTALL-VALIDATION.md).

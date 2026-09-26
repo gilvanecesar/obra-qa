@@ -19,6 +19,8 @@ A public one-click agent must complete private executor onboarding before claimi
 
 Do not point every install at the developer's private executor. Never mount a Docker socket into the conversational image to bypass onboarding. The bridge deliberately binds to loopback; remote use requires a separately secured and tested private route, not simply changing its listen address.
 
+A separate-container test verified the published QA client against a fresh host executor, including audit execution and PDF download. Empty-state boot still requires Plow configuration. See [the installation record](INSTALL-VALIDATION.md); this does not satisfy the fresh-owner/cloud acceptance gate.
+
 ## 1. Validate the source
 
 ```sh

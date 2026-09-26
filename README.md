@@ -43,7 +43,7 @@ Or send a public repository link:
 
 The bridge clones the public repository without account credentials, pins its default branch HEAD and discovers JavaScript syntax checks plus npm `test`, `lint`, `typecheck` and `build` scripts. Dependencies require a committed `package-lock.json`; they are prepared in a separate image with lifecycle scripts disabled. Checks execute offline. No project registration or commit copy/paste is needed.
 
-This first automatic adapter supports JavaScript/npm. Private repositories, pull-request URLs, other package managers and other stacks are not yet supported by link onboarding. Repositories without a test script receive an **INCONCLUSIVE** overall result, even if syntax checks pass. Tests are discovered/reused, not generated. Functionality-based test generation remains planned.
+This first automatic adapter supports JavaScript/npm. Private repositories, pull-request URLs, other package managers and other stacks are not yet supported by link onboarding. Repositories without a test script receive an **INCONCLUSIVE** overall result, even if syntax checks pass. Existing checks are discovered/reused. The deep-analysis flow can additionally author bounded Node tests mapped to source-grounded requirements; their assertions still require evidence review. A missing npm test script remains a coverage gap unless generated tests are supplied, and unmapped requirements remain untested.
 
 ## From a request to evidence
 
@@ -74,7 +74,7 @@ The event stream is available in job status. **Recording progress does not yet m
 
 On 2026-09-25, the owner sent `https://github.com/gilvanecesar/obra-cockpit` through Plow and requested a PDF. No manual project registration or commit entry was required. The executor pinned commit `99d7ddaf0e45981e59404bdc4f9f64084a93d777`, checked 12 JavaScript files with no syntax failures, and generated the report. The owner confirmed that the PDF arrived as an attachment in the same conversation.
 
-The overall result was **INCONCLUSIVE** because the repository has no npm test script: syntax passed, but application behavior was not tested. This validates the owner-chat delivery flow, not multiplayer, automatic functional-test generation or a fresh cloud installation. The implementation has eight passing automated tests. See [validation record](docs/VALIDATION.md).
+The overall result was **INCONCLUSIVE** because the repository has no npm test script: syntax passed, but application behavior was not tested. This validates the owner-chat delivery flow, not multiplayer, automatic functional-test generation or a fresh cloud installation. That pilot used eight automated tests; the current implementation has twelve. See [validation record](docs/VALIDATION.md).
 
 ## Evidence from a real project
 
@@ -125,21 +125,6 @@ It creates a synthetic cross-tenant defect, executes the failing test, applies a
 
 For phone-based operation, follow [local setup](docs/SETUP.md). For public image packaging and one-click admission, use the [deployment guide](docs/DEPLOY.md).
 
-## Published Docker image
-
-The public conversational runtime was built from commit `296f117`. Download the tested immutable release with:
-
-```sh
-docker pull --platform linux/amd64 \
-  ghcr.io/gilvanecesar/obra-qa@sha256:4c138cd04a46be2110e569f45ef09c5b48fb88c57e59bf0579b333ef78fdb363
-```
-
-This release targets **linux/amd64**. Specify the platform on Apple Silicon; a pull that defaults to ARM64 will fail. Docker Desktop uses emulation to run this image on Apple Silicon.
-
-The image contains the OpenClaw conversational agent and QA client. It still needs Plow credentials and a separately configured QA executor; downloading it does not create a working standalone QA service. Follow [local setup](docs/SETUP.md) for a locally built agent with its own fixture, or [deployment configuration](docs/DEPLOY.md) for the published runtime's required inputs.
-
-**Installation checks on 2026-09-25:** a fresh GitHub clone passed all six tests, the Docker regression/isolation/timeout demo, fixture setup and installation of ReportLab 4.4.3 in a new virtual environment. The published image was pulled with an empty Docker credential configuration. Docker layers could be cached; this was not a fresh-machine or end-to-end cloud installation test.
-
 ## Latest public runtime image
 
 Published from commit `6198cb8e27a3fa7eaa06aad667e66e14177877d9` after the deep-analysis PR, with all 12 automated tests passing in [the release workflow](https://github.com/gilvanecesar/obra-qa/actions/runs/36206761234).
@@ -148,7 +133,7 @@ Published from commit `6198cb8e27a3fa7eaa06aad667e66e14177877d9` after the deep-
 docker pull --platform linux/amd64 ghcr.io/gilvanecesar/obra-qa@sha256:e0e98eda021ddb8905bac42400fe0248a48b85787610ed301452fa099c2f52a2
 ```
 
-Anonymous pull and an offline inspection of the packaged deep-analysis skill passed on the existing Docker host. Cached base layers may have been reused. This is the conversational runtime: use matching current executor source and per-installation credentials. This release does not enable one-click deployment or upgrade running installations automatically.
+Anonymous pull, packaged-skill inspection and a separate-container client/executor test passed on the existing Docker host. Twelve automated tests passed; broken/corrected fixtures, a public repository URL, mapped additional tests and four PDF downloads were checked. The executor ran separately on the host with a new token and certificate. Docker Engine and cached layers were shared; no fresh Plow identity or messaging flow was tested. See the [installation validation](docs/INSTALL-VALIDATION.md). This is the conversational runtime: use matching current executor source and per-installation credentials. This release does not enable one-click deployment or upgrade running installations automatically.
 
 ## One-click deployment: honest release status
 
@@ -200,7 +185,7 @@ docs/                Setup, deployment and integration status
 
 See [integration details](docs/INTEGRATION.md), [MIT license](LICENSE) and [third-party components](THIRD_PARTY.md).
 
-The immutable image linked above predates repository-link onboarding. For the new client, build the current source using [local setup](docs/SETUP.md); the executor must also run the updated source.
+Use the current executor source with the latest runtime image. See [local setup](docs/SETUP.md) for the per-installation configuration.
 
 ## Deep functional analysis
 
