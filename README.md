@@ -140,6 +140,16 @@ The image contains the OpenClaw conversational agent and QA client. It still nee
 
 **Installation checks on 2026-09-25:** a fresh GitHub clone passed all six tests, the Docker regression/isolation/timeout demo, fixture setup and installation of ReportLab 4.4.3 in a new virtual environment. The published image was pulled with an empty Docker credential configuration. Docker layers could be cached; this was not a fresh-machine or end-to-end cloud installation test.
 
+## Latest public runtime image
+
+Published from commit `6198cb8e27a3fa7eaa06aad667e66e14177877d9` after the deep-analysis PR, with all 12 automated tests passing in [the release workflow](https://github.com/gilvanecesar/obra-qa/actions/runs/36206761234).
+
+```sh
+docker pull --platform linux/amd64 ghcr.io/gilvanecesar/obra-qa@sha256:e0e98eda021ddb8905bac42400fe0248a48b85787610ed301452fa099c2f52a2
+```
+
+Anonymous pull and an offline inspection of the packaged deep-analysis skill passed on the existing Docker host. Cached base layers may have been reused. This is the conversational runtime: use matching current executor source and per-installation credentials. This release does not enable one-click deployment or upgrade running installations automatically.
+
 ## One-click deployment: honest release status
 
 **A public GHCR image is published and its anonymous download is verified. The install button is not live.**

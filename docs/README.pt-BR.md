@@ -53,3 +53,7 @@ Em 25/09/2026, uma cópia nova do GitHub passou nos seis testes, na demonstraç�
 Para usar o novo fluxo por link, reconstrua o agente e reinicie o executor com o código atual conforme SETUP.md. A imagem pública imutável acima é anterior a essa atualização.
 
 Vídeo publicado: https://youtu.be/BV4GKwVrF2Y. Protocolo de análise aprofundada: [DEEP-ANALYSIS.md](DEEP-ANALYSIS.md).
+
+## Imagem atualizada de análise aprofundada
+
+Publicada a partir do commit `6198cb8`, com os 12 testes aprovados. Referência imutável: `ghcr.io/gilvanecesar/obra-qa@sha256:e0e98eda021ddb8905bac42400fe0248a48b85787610ed301452fa099c2f52a2`. Download sem credenciais e presença da skill aprofundada verificados no Docker local. Use também o executor atualizado; esta publicação não ativa o deploy de um clique nem atualiza instalações existentes automaticamente.
