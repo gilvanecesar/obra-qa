@@ -1,3 +1,5 @@
+import {applyPlan,validatePlan} from './plan.mjs';
+import {inspectSource} from './project.mjs';
 import {prepareRepository,repositoryURL} from './repository.mjs';
 import {createServer} from 'node:http';
 import {createServer as createTlsServer} from 'node:https';
@@ -6,7 +8,7 @@ import {readFileSync,writeFileSync} from 'node:fs';
 import {resolveRevision,inspectProject} from './project.mjs';
 import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
-import {audit,validate} from './audit.mjs';
+import {audit,validate,reportMarkdown} from './audit.mjs';
 import {resolve,join} from 'node:path';
 
 // One trusted team per installation. Public multi-tenant hosting is intentionally unsupported.
@@ -31,17 +33,28 @@ export function createBridge({token,projects,out='runs',runner=audit,prepare=pre
   if(req.method==='GET'&&/^\/jobs\/[a-f0-9-]{36}$/.test(req.url)){
    const job=jobs.get(req.url.split('/')[2]);return send(res,job?200:404,job?{...job,dir:undefined}:{error:'Unknown job'});
   }
-  if(req.method!=='POST'||req.url!=='/jobs')return send(res,404,{error:'Unknown route'});
+  if(req.method!=='POST'||!['/jobs','/inspect'].includes(req.url))return send(res,404,{error:'Unknown route'});
   let body='';
   try{
-   for await(const chunk of req){body+=chunk;if(Buffer.byteLength(body)>4096){send(res,413,{error:'Body too large'});return;}}
+   for await(const chunk of req){body+=chunk;if(Buffer.byteLength(body)>120000){send(res,413,{error:'Body too large'});return;}}
    const value=JSON.parse(body);
-   if(!value||Object.keys(value).some(k=>!['project','revision','repository'].includes(k))||(value.repository ? (value.project!==undefined || typeof value.repository!=='string') : !Object.hasOwn(projects,value.project))||(value.revision!==undefined&&!/^[a-f0-9]{40,64}$/.test(value.revision)))return send(res,400,{error:'Use a GitHub repository URL or configured project, with an optional full commit SHA'});
+   if(!value||Object.keys(value).some(k=>!['project','revision','repository','plan'].includes(k))||(value.repository ? (value.project!==undefined || typeof value.repository!=='string') : !Object.hasOwn(projects,value.project))||(value.revision!==undefined&&!/^[a-f0-9]{40,64}$/.test(value.revision)))return send(res,400,{error:'Use a GitHub repository URL or configured project, with an optional full commit SHA'});
+   if(value.plan){if(req.url==='/inspect')throw Error('Inspection does not accept a plan');validatePlan(value.plan,value.revision);}
    if(busy)return send(res,409,{error:'An audit is already running'});
    if(jobs.size>=100){const first=[...jobs].find(([,j])=>j.state!=='running');if(first)jobs.delete(first[0]);}
    if(value.repository)repositoryURL(value.repository);
    const projectConfig=projects[value.project];
    if(!value.repository&&value.revision===undefined)value.revision=resolveRevision(projectConfig.repo);
+   if(req.url==='/inspect'){
+    busy=true;let inspection;
+    try{
+     let repo=projectConfig?.repo,sha=value.revision;
+     if(value.repository){inspection=await prepare(value.repository,value.revision,()=>{},true);repo=inspection.repo;sha=inspection.revision;}
+     const analysis=inspectSource(repo,sha);
+     send(res,200,{...analysis,planContract:{maxRequirements:12,maxTests:4,testLocation:'/work/.obra-qa-tests',imports:'Use ../ paths to import repository modules',execution:'node --test, offline Docker only'}});
+    }catch(e){send(res,400,{error:e.message});}finally{inspection?.cleanup();busy=false;}
+    return;
+   }
    const id=randomUUID();jobs.set(id,{id,state:'running',project:value.project||value.repository,revision:value.revision,events:[]});busy=true;
    send(res,202,jobs.get(id));
    let p=projects[value.project],prepared;
@@ -49,15 +62,18 @@ export function createBridge({token,projects,out='runs',runner=audit,prepare=pre
    Promise.resolve().then(async()=>{
     if(value.repository){prepared=await prepare(value.repository,value.revision,event);p=prepared;value.revision=p.revision;jobs.get(id).revision=p.revision;jobs.get(id).coverageGaps=p.gaps;}
     if(runner===audit){jobs.get(id).analysis=inspectProject(p.repo,value.revision);event({stage:'documentation',state:'completed'});}
+    if(value.plan){validatePlan(value.plan,value.revision);p={...p,spec:applyPlan(p.spec,value.plan)};event({stage:'functional-plan',state:'completed',requirements:value.plan.requirements.map(r=>({id:r.id,behavior:r.behavior})),tests:value.plan.tests.map(t=>t.name)});}
     return runner(p.repo,p.spec,value.revision,out,event);
    }).then(result=>{
+    if(prepared && value.plan?.tests.length)prepared.gaps=prepared.gaps.filter(g=>!g.startsWith('No npm test script:'));
+    if(prepared)jobs.get(id).coverageGaps=prepared.gaps;
     if(prepared?.gaps.length){result.report.limits.push(...prepared.gaps);result.report.verdict='INCONCLUSIVE';}
     const evidence = result.dir ? result.report.checks.map(c=>({check:c.name,untrusted:true,text:readFileSync(join(result.dir,c.evidence),'utf8').slice(0,12000)})) : [];
     let pdf={state:'unavailable'};
     if(result.dir){
      result.report.analysis=jobs.get(id).analysis;
      writeFileSync(join(result.dir,'report.json'),JSON.stringify(result.report,null,2));
-     if(prepared?.gaps.length)writeFileSync(join(result.dir,'report.md'),`# Obra QA: INCONCLUSIVE\n\nRevision: ${result.report.revision}\n\n`+result.report.checks.map(c=>`- ${c.name}: ${c.status}; evidence ${c.evidence}`).join('\n')+'\n\n'+result.report.limits.join('\n'));
+     writeFileSync(join(result.dir,'report.md'),reportMarkdown(result.report));
      if(pdfPython){event({stage:'pdf',state:'running'});try{
       execFileSync(pdfPython,[fileURLToPath(new URL('../scripts/report-pdf.py',import.meta.url)),join(result.dir,'report.json'),join(result.dir,'report.pdf')],{timeout:30000,stdio:'pipe'});
       pdf={state:'ready',path:`/jobs/${id}/report.pdf`};event({stage:'pdf',state:'completed'});

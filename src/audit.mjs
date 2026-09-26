@@ -1,8 +1,15 @@
+import {validatePlan,coverageFor} from './plan.mjs';
 import {spawn,execFileSync as exec} from 'node:child_process';
 import {mkdtempSync,mkdirSync,writeFileSync,rmSync,readFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
 import {randomUUID,createHash} from 'node:crypto';
+export function reportMarkdown(report){
+ return `# Obra QA: ${report.verdict}\n\nRevision: ${report.revision}\n\n`+
+ report.checks.map(c=>`- ${c.name}: ${c.status}; exit ${c.exitCode}; evidence ${c.evidence}`).join('\n')+
+ (report.coverage?'\n\n## Functional coverage\n'+report.coverage.map(r=>`- ${r.id}: ${r.status} — ${r.behavior}; basis: ${r.basis}; checks: ${r.checks.join(', ')||'none'}`).join('\n'):'')+
+ '\n\n'+report.limits.join('\n');
+}
 export function verdict(checks){
  if(!checks.length || checks.some(c=>c.status!=='passed'))return 'INCONCLUSIVE';
  return 'PASSED';
@@ -10,6 +17,8 @@ export function verdict(checks){
 export function validate(spec){
  if(!/^sha256:[a-f0-9]{64}$/.test(spec?.image||''))throw Error('Immutable local image ID required');
  if(!Array.isArray(spec.checks)||!spec.checks.length||spec.checks.length>10)throw Error('1–10 checks required');
+ if(spec.plan)validatePlan(spec.plan,spec.plan.revision);
+ if(spec.generatedTests && (!spec.plan || JSON.stringify(spec.generatedTests)!==JSON.stringify(spec.plan.tests)))throw Error('Generated tests must come from the validated plan');
  const names=new Set();
  for(const c of spec.checks){
   if(!/^[\w-]{1,60}$/.test(c.name||'')||names.has(c.name))throw Error('Invalid or duplicate name');
@@ -31,25 +40,39 @@ export async function audit(repo,spec,revision='HEAD',out='runs',onProgress=()=>
  validate(spec);repo=resolve(repo);
  const sha=exec('git',['-C',repo,'rev-parse','--verify',`${revision}^{commit}`],{encoding:'utf8'}).trim();
  if(!/^[a-f0-9]{40,64}$/.test(sha))throw Error('Invalid revision');
+ if(spec.plan && spec.plan.revision!==sha)throw Error('Plan revision mismatch');
  exec('docker',['image','inspect',spec.image],{stdio:'pipe'});
  const id=randomUUID(),dir=resolve(out,id),tmp=mkdtempSync(join(tmpdir(),'obra-qa-'));
  mkdirSync(dir,{recursive:true});
  try{
  onProgress({stage:'preparation',state:'completed',revision:sha});
  const archive=join(tmp,'source.tar');exec('git',['-C',repo,'archive','--format=tar','-o',archive,sha]);
+ const generated=join(tmp,'generated');mkdirSync(generated);
+ if(spec.generatedTests?.length){
+  mkdirSync(join(dir,'generated-tests'));
+  for(const t of spec.generatedTests){writeFileSync(join(generated,`${t.name}.test.mjs`),t.source);writeFileSync(join(dir,'generated-tests',`${t.name}.test.mjs`),t.source);}
+  writeFileSync(join(dir,'plan.json'),JSON.stringify(spec.plan,null,2));
+  onProgress({stage:'test-creation',state:'completed',tests:spec.generatedTests.map(t=>t.name)});
+ }
  const checks=[];
  for(const c of spec.checks){
   onProgress({stage:'check',state:'running',check:c.name});
   const name=`obra-qa-${id}-${checks.length}`;
-  const args=['run','--rm','--pull=never','--name',name,'--network=none','--read-only','--cap-drop=ALL','--security-opt=no-new-privileges','--pids-limit=128','--memory=512m','--cpus=1','--user=1000:1000','--tmpfs','/work:rw,nosuid,nodev,size=128m,mode=1777','--tmpfs','/tmp:rw,nosuid,nodev,size=64m,mode=1777','--mount',`type=bind,src=${archive},dst=/source.tar,readonly`,'--workdir=/work','--entrypoint=/bin/sh',spec.image,'-c','tar -xf /source.tar -C /work && exec "$@"','qa',...c.argv];
+  const args=['run','--rm','--pull=never','--name',name,'--network=none','--read-only','--cap-drop=ALL','--security-opt=no-new-privileges','--pids-limit=128','--memory=512m','--cpus=1','--user=1000:1000','--tmpfs','/work:rw,nosuid,nodev,size=128m,mode=1777','--tmpfs','/tmp:rw,nosuid,nodev,size=64m,mode=1777','--mount',`type=bind,src=${archive},dst=/source.tar,readonly`,'--mount',`type=bind,src=${generated},dst=/qa-tests,readonly`,'--workdir=/work','--entrypoint=/bin/sh',spec.image,'-c','set -e; tar -xf /source.tar -C /work; rm -rf /work/.obra-qa-tests; mkdir /work/.obra-qa-tests; cp -R /qa-tests/. /work/.obra-qa-tests/; exec "$@"','qa',...c.argv];
   const r=await execute(args,c.timeoutMs);
   try{exec('docker',['rm','-f',name],{stdio:'ignore',timeout:5000});}catch{}
   const evidence=`${c.name}.log`;writeFileSync(join(dir,evidence),r.output);
   const {output,...meta}=r;onProgress({stage:'check',state:'completed',check:c.name,status:meta.status,exitCode:meta.exitCode});checks.push({...meta,name:c.name,argv:c.argv,evidence,sha256:createHash('sha256').update(output).digest('hex')});
  }
  const report={schemaVersion:1,id,revision:sha,image:spec.image,verdict:verdict(checks),checks,limits:['Only listed commands are covered.','Nonzero exits require evidence review; they are not automatically confirmed bugs.','No network, host credentials or untracked dependencies inherited.']};
+ if(spec.plan){
+  report.coverage=coverageFor(spec.plan,checks);
+  report.generatedTests=spec.generatedTests.map(t=>({name:t.name,requirements:t.requirements,source:`generated-tests/${t.name}.test.mjs`,sha256:createHash('sha256').update(t.source).digest('hex')}));
+  report.limits.push('Generated tests are model-authored hypotheses; passing them is not proof of full functional coverage.');
+  if(report.coverage.some(r=>r.status!=='checks-passed'))report.verdict='INCONCLUSIVE';
+ }
  writeFileSync(join(dir,'report.json'),JSON.stringify(report,null,2));
- writeFileSync(join(dir,'report.md'),`# Obra QA: ${report.verdict}\n\nRevision: ${sha}\n\n`+checks.map(c=>`- ${c.name}: ${c.status}; exit ${c.exitCode}; ${c.durationMs}ms; evidence ${c.evidence}`).join('\n')+'\n\n'+report.limits.join('\n'));
+ writeFileSync(join(dir,'report.md'),reportMarkdown(report));
  return {dir,report};
  }finally{rmSync(tmp,{recursive:true,force:true});}
 }

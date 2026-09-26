@@ -18,7 +18,7 @@ flowchart LR
 
 > QA, teste o AUTOMACAO e mostre o que passou, o que falhou e o que ficou sem testar.
 
-Para projetos cadastrados, não é necessário informar SHA. O servidor usa o último commit local e registra a revisão exata. Também é possível enviar a URL de um repositório público GitHub: o executor fixa o commit, verifica sintaxe JavaScript e detecta scripts npm de teste, lint, tipos e build. Dependências exigem package-lock.json. Sem script de teste, o resultado geral permanece INCONCLUSIVE. Repositórios privados, outras stacks e geração automática de testes funcionais ainda não estão disponíveis nesse fluxo.
+Para projetos cadastrados, não é necessário informar SHA. O servidor usa o último commit local e registra a revisão exata. Também é possível enviar a URL de um repositório público GitHub: o executor fixa o commit, verifica sintaxe JavaScript e detecta scripts npm de teste, lint, tipos e build. Dependências exigem package-lock.json. Sem testes existentes ou gerados, não há evidência funcional. Requisitos sem testes mantêm INCONCLUSIVE. O novo fluxo aprofundado permite ao agente inspecionar código versionado e criar testes Node vinculados a requisitos. Repositórios privados e adaptadores para outras stacks continuam pendentes.
 
 ## O que já foi validado
 
@@ -33,7 +33,7 @@ O código privado do AUTOMACAO e os dados dos clientes não estão neste reposit
 
 ## O que falta para o hackathon
 
-Validar o grupo com dois participantes, as atualizações ao vivo, o envio automático recorrente de uso ao Agent Index, o vídeo e uma instalação independente com executor próprio.
+Validar o grupo com dois participantes, as atualizações ao vivo, o envio automático recorrente de uso ao Agent Index e uma instalação independente com executor próprio.
 
 **O deploy de um clique ainda não está ativo.** A imagem pública foi publicada e baixada sem credenciais de registro; a organização precisa habilitar o primeiro deploy. Antes disso, temos de resolver como cada nova instalação conecta seu executor de testes.
 
@@ -51,3 +51,5 @@ A imagem publicada usa **linux/amd64**. No Mac com Apple Silicon, informe a plat
 Em 25/09/2026, uma cópia nova do GitHub passou nos seis testes, na demonstração Docker, na preparação do projeto sintético e na instalação do ReportLab 4.4.3 em um ambiente Python novo. O download da imagem foi validado sem credenciais de registro, com possível reaproveitamento de camadas locais. Isso não valida ainda uma instalação completa na nuvem. Um relatório de uso real foi aceito pelo Agent Index; o envio automático recorrente ainda precisa ser verificado.
 
 Para usar o novo fluxo por link, reconstrua o agente e reinicie o executor com o código atual conforme SETUP.md. A imagem pública imutável acima é anterior a essa atualização.
+
+Vídeo publicado: https://youtu.be/BV4GKwVrF2Y. Protocolo de análise aprofundada: [DEEP-ANALYSIS.md](DEEP-ANALYSIS.md).
