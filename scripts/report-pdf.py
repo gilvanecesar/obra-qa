@@ -13,8 +13,11 @@ s.add(ParagraphStyle(name='EvidenceLog',fontName='Courier',fontSize=7,leading=9,
 items=[]
 def p(text,style='BodyText'):
     gap=Spacer(1,9)
-    if style.startswith('Heading'):gap.keepWithNext=True
-    items.extend([Paragraph(escape(str(text)),s[style]),gap])
+    paragraph=Paragraph(escape(str(text)),s[style])
+    if style.startswith('Heading'):
+        gap.keepWithNext=True
+        paragraph.keepWithNext=True
+    items.extend([paragraph,gap])
 p('Obra QA | Relatório de execução','Title')
 p('Revisão: '+r['revision'])
 p('Execução: '+r['id'])
