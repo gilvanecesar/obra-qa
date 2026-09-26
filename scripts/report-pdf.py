@@ -12,7 +12,9 @@ s=getSampleStyleSheet();s['BodyText'].leading=15
 s.add(ParagraphStyle(name='EvidenceLog',fontName='Courier',fontSize=7,leading=9,spaceAfter=12))
 items=[]
 def p(text,style='BodyText'):
-    items.extend([Paragraph(escape(str(text)),s[style]),Spacer(1,9)])
+    gap=Spacer(1,9)
+    if style.startswith('Heading'):gap.keepWithNext=True
+    items.extend([Paragraph(escape(str(text)),s[style]),gap])
 p('Obra QA | Relatório de execução','Title')
 p('Revisão: '+r['revision'])
 p('Execução: '+r['id'])
