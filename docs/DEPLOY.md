@@ -11,7 +11,7 @@ A public one-click agent must complete private executor onboarding before claimi
 | Runtime input | Purpose | Included in public image? |
 |---|---|---|
 | PLOW_AGENT_TOKEN and upstream Plow configuration | Conversation identity, supplied by Plow | No |
-| AGENT_ID | Registered Agent Index slug for reporting | No; add after registration |
+| AGENT_ID | Registered Agent Index slug for reporting | Yes: obra-qa |
 | OBRA_QA_URL | Per-installation authenticated HTTPS executor | No |
 | OBRA_QA_TOKEN_FILE | Secret file path for that executor | No |
 | OBRA_QA_CA_FILE | Optional private CA certificate path | No |
@@ -70,7 +70,7 @@ plow-agents image set obra-qa --name "Obra QA" \
   --link https://github.com/gilvanecesar/obra-qa/blob/main/docs/SETUP.md
 ```
 
-Configure `AGENT_ID=obra-qa` in the runtime only after confirming the registered slug. The base supplies usage reporting; verify actual reports reach that listing. Do not generate artificial traffic or tokens. Registration is not deployment admission.
+The image sets `AGENT_ID=obra-qa` for the registered listing. The base supplies usage reporting; verify actual reports reach that listing on a fresh installation. Do not generate artificial traffic or tokens. Registration is not deployment admission.
 
 ## 5. Acceptance gate before one-click admission
 
