@@ -1,5 +1,5 @@
 # Supply the immutable Plow base reference from the official registry.
-ARG PLOW_BASE=public.ecr.aws/e1h7x4a2/plow-cloud-agents:base-7ce757a1745de286dd180c5c5182aca31eba8a75@sha256:6e5e1a11a8c6e2ef6ecaa5e7b429e778a9a3befaf416a09922aaaa4a5b21d647
+ARG PLOW_BASE=public.ecr.aws/e1h7x4a2/plow-cloud-agents:base-771198a9609dcef54d44843e7da5329c17fa51b4@sha256:f1e7c421b97a80f1bd17015f96daceb965f350a241f7edc7e4d856a0e3a6f8f5
 FROM ${PLOW_BASE}
 ENV AGENT_ID=obra-qa \
     AGENT_NAME="Obra QA" \
