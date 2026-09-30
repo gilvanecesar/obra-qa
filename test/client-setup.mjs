@@ -17,7 +17,8 @@ test('client explains missing, unreadable and empty executor token configuration
     env:{...process.env,OBRA_QA_URL:'http://127.0.0.1:4781',OBRA_QA_TOKEN_FILE:file,OBRA_QA_CA_FILE:''},
    }),error=>{
     assert.equal(error.code,1);
-    assert.match(error.stderr,/setup incomplete/i);
+    assert.match(error.stderr,/not connected to an executor/i);
+    assert.match(error.stderr,/executor-up\.mjs/);
     assert.match(error.stderr,/OBRA_QA_TOKEN_FILE/);
     assert.doesNotMatch(error.stderr,/TypeError|at readFileSync/);
     assert.equal(error.stdout,'');
