@@ -1,5 +1,23 @@
 # Local setup (Docker Desktop)
 
+## Quick start — one command
+
+The executor (bridge) is a separate service Obra QA delegates to; the agent never
+runs target code itself. To stand the executor up from scratch, on any machine
+with Docker, Node and openssl:
+
+```sh
+node scripts/executor-up.mjs
+```
+
+It generates the token, certificate and fixture, builds the isolated runner image,
+prints the `OBRA_QA_URL` / `OBRA_QA_TOKEN_FILE` / `OBRA_QA_CA_FILE` to set in the
+agent, and keeps the bridge running on `127.0.0.1:4781`. Re-running it just
+restarts the bridge (existing token and config are reused). It replaces the manual
+steps below — keep reading only if you want to run them by hand.
+
+## Manual setup
+
 1. Run the README's quick-start build and tests.
 2. Prepare the private fixture and bridge configuration:
 

@@ -10,7 +10,17 @@ catch(error){
  if(!['ENOENT','EACCES','EISDIR'].includes(error.code))throw error;
 }
 if(!token){
- console.error('Obra QA setup incomplete: the operator must set OBRA_QA_TOKEN_FILE to a readable, nonempty executor token file and configure OBRA_QA_URL for this installation. Never paste the token in chat.');
+ console.error([
+  'Obra QA is not connected to an executor yet, so there is nothing to run against.',
+  'Obra QA never runs your code itself — it delegates to an isolated executor (a small',
+  'service with Docker that you run and trust). Stand one up in one command, on any',
+  'machine with Docker, from the obra-qa repo:',
+  '',
+  '    node scripts/executor-up.mjs',
+  '',
+  'It prints the two values to set in this agent\'s environment (OBRA_QA_URL and',
+  'OBRA_QA_TOKEN_FILE), then keeps the executor running. Full guide: docs/SETUP.md.',
+  'Never paste the token in chat — give the agent the token file path instead.'].join('\n'));
  process.exit(1);
 }
 let path,method='GET',body;
