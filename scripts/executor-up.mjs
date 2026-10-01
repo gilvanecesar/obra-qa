@@ -64,16 +64,30 @@ execFileSync('docker', ['build', '--platform', 'linux/amd64', '-f',
 
 // 5. Tell the operator exactly what to set in the agent, then run the bridge.
 const pyVenv = resolve(local, 'venv/bin/python');
+// Pairing code: the agent connects itself from this, entirely through chat — no
+// environment variables, no token file on the agent side. It carries the URL,
+// token and CA, so it is sensitive (treat like a password). OBRA_QA_PUBLIC_URL
+// overrides the advertised URL when the agent runs on another machine.
+const publicUrl = process.env.OBRA_QA_PUBLIC_URL || 'https://host.docker.internal:4781';
+const pairing = 'OBRAQA1-' + Buffer.from(JSON.stringify({
+  u: publicUrl,
+  t: readFileSync(tokenPath, 'utf8').trim(),
+  c: readFileSync(certPath, 'utf8'),
+})).toString('base64url');
 const banner = [
-  '', '='.repeat(64),
-  '  Executor ready. Set these in the AGENT\'s environment:', '',
-  '    OBRA_QA_URL=https://host.docker.internal:4781',
-  '    OBRA_QA_TOKEN_FILE=' + tokenPath,
-  '    OBRA_QA_CA_FILE=' + certPath, '',
-  '  (For the bundled agent, compose.local.yml already wires these.)',
-  '  Keep this process running. It binds only 127.0.0.1:4781.',
-  '  Never paste the token into chat — hand the agent the file path.',
-  '='.repeat(64), ''];
+  '', '='.repeat(68),
+  '  Executor ready, listening on 127.0.0.1:4781. Keep this running.', '',
+  '  CONNECT BY CHAT — send this one-line pairing code to your agent:', '',
+  '    ' + pairing, '',
+  '  The agent runs `qa-client.mjs pair <code>` and connects itself —',
+  '  no environment variables, no token file on the agent side.',
+  '  The code carries the executor URL + credential: treat it like a',
+  '  password, and only send it to your own agent.', '',
+  '  Agent on another machine? Set OBRA_QA_PUBLIC_URL to a URL it can',
+  '  reach BEFORE running this (this code points to ' + publicUrl + ').',
+  '  (For the bundled local agent, compose.local.yml still wires the',
+  '  file paths directly — pairing is for one-click/phone installs.)',
+  '='.repeat(68), ''];
 console.log(banner.join('\n'));
 
 const env = {...process.env, OBRA_QA_TOKEN_FILE: tokenPath};

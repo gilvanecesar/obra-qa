@@ -11,10 +11,18 @@ node scripts/executor-up.mjs
 ```
 
 It generates the token, certificate and fixture, builds the isolated runner image,
-prints the `OBRA_QA_URL` / `OBRA_QA_TOKEN_FILE` / `OBRA_QA_CA_FILE` to set in the
-agent, and keeps the bridge running on `127.0.0.1:4781`. Re-running it just
-restarts the bridge (existing token and config are reused). It replaces the manual
-steps below — keep reading only if you want to run them by hand.
+keeps the bridge running on `127.0.0.1:4781`, and prints a one-line **pairing
+code** (`OBRAQA1-…`). Send that code to your agent in chat; it runs
+`qa-client.mjs pair <code>` and connects itself — no environment variables, no
+token file on the agent side (the right flow for one-click / phone installs). The
+pairing code carries the connection credential, so treat it like a password.
+
+If the agent runs on a different machine than the executor, set
+`OBRA_QA_PUBLIC_URL` to a URL the agent can reach before running the command, so
+the code points there. Re-running the command reuses the existing token and
+config. It replaces the manual steps below — keep reading only to run them by hand
+or to wire the bundled local agent via `compose.local.yml` (file paths, not
+pairing).
 
 ## Manual setup
 
